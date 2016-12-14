@@ -26,6 +26,8 @@ option(WITH_TOOLS "Compile with tools." ON)
 #------------------------------------------------------------------------------
 option(ENABLE_SHARED "" OFF)
 
+
+
 # Check dependencies.
 #==============================================================================
 # Require Boost of at least version 1.56.0 and output ${boost_CPPFLAGS/LDFLAGS}.
@@ -37,11 +39,37 @@ find_package(
   Boost 1.56.0 REQUIRED
   COMPONENTS unit_test_framework)
 
-# Require bitprim-core of at least version 3.0.0 and output ${bitprim_core_CPPFLAGS/LIBS/PKG}.
+## Require protobuf of at least version 3.0.0 and output ${protobuf_CPPFLAGS/LIBS/PKG}.
+##------------------------------------------------------------------------------
+#if (DEFINED Protobuf_ROOT_DIR)
+#  set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${Protobuf_ROOT_DIR})
+#endif()
+#find_package(Protobuf 3 REQUIRED)
+#
+## Require zmq of at least version 4.1.1 and output ${zmq_CPPFLAGS/LIBS/PKG}.
+##------------------------------------------------------------------------------
+#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+#find_package(ZeroMQ 4.1.1 REQUIRED)
+
+
+## Require bitprim-database of at least version 3.0.0 and output ${bitprim_database_CPPFLAGS/LIBS/PKG}.
 #------------------------------------------------------------------------------
-if (NOT TARGET bitprim-core)
-  find_package(bitprim-core 3.0.0 REQUIRED)
+if (NOT TARGET bitprim-database)
+  find_package(bitprim-database 3.0.0 REQUIRED)
 endif()
+
+# Require bitprim-protocol of at least version 3.0.0 and output ${bitprim_protocol_CPPFLAGS/LIBS/PKG}.
+#------------------------------------------------------------------------------
+if (NOT TARGET bitprim-protocol)
+  find_package(bitprim-protocol 3.0.0 REQUIRED)
+endif()
+
+
+## Require bitprim-core of at least version 3.0.0 and output ${bitprim_core_CPPFLAGS/LIBS/PKG}.
+##------------------------------------------------------------------------------
+#if (NOT TARGET bitprim-core)
+#  find_package(bitprim-core 3.0.0 REQUIRED)
+#endif()
 
 # Set flags.
 #==============================================================================
@@ -158,62 +186,66 @@ endif()
 
 #add_library(bitprim-database ${MODE}
 #  src/data_base.cpp
-#  src/settings.cpp
 #  src/databases/block_database.cpp
 #  src/databases/history_database.cpp
 #  src/databases/spend_database.cpp
 #  src/databases/stealth_database.cpp
 #  src/databases/transaction_database.cpp
-#
-#  # src/databases/unspent_database.cpp
 #  src/databases/unspent_database_v2.cpp
-#
 #  src/memory/accessor.cpp
 #  src/memory/allocator.cpp
 #  src/memory/memory_map.cpp
 #  src/mman-win32/mman.c
-#  src/mman-win32/mman.h
 #  src/primitives/record_list.cpp
 #  src/primitives/record_manager.cpp
 #  src/primitives/record_multimap_iterable.cpp
 #  src/primitives/record_multimap_iterator.cpp
 #  src/primitives/slab_manager.cpp
 #  src/result/block_result.cpp
-#  src/result/transaction_result.cpp)
+#     src/result/transaction_result.cpp
+#     src/settings.cpp
+#     src/store.cpp)
 
-add_library(bitprim-database ${MODE}
-    src/data_base.cpp
-    src/databases/block_database.cpp
-    src/databases/history_database.cpp
-    src/databases/spend_database.cpp
-    src/databases/stealth_database.cpp
-    src/databases/transaction_database.cpp
-#    src/databases/unspent_database.cpp
-    src/databases/unspent_database_v2.cpp
-    src/memory/accessor.cpp
-    src/memory/allocator.cpp
-    src/memory/memory_map.cpp
-    src/mman-win32/mman.c
-    src/primitives/record_list.cpp
-    src/primitives/record_manager.cpp
-    src/primitives/record_multimap_iterable.cpp
-    src/primitives/record_multimap_iterator.cpp
-    src/primitives/slab_manager.cpp
-    src/result/block_result.cpp
-    src/result/transaction_result.cpp
-    src/settings.cpp
-    src/store.cpp)
+#         target_include_directories(bitprim-database PUBLIC
+#   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+#   $<INSTALL_INTERFACE:include>)
+
+# target_compile_definitions(bitprim-database PUBLIC -DBCD_STATIC)
+
+# target_link_libraries(bitprim-database bitprim-core)
+
+# _group_sources(bitprim-database "${CMAKE_CURRENT_LIST_DIR}")
 
 
-        target_include_directories(bitprim-database PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>)
 
-target_compile_definitions(bitprim-database PUBLIC -DBCD_STATIC)
+# Database Replier
+#==============================================================================
 
-target_link_libraries(bitprim-database bitprim-core)
 
-_group_sources(bitprim-database "${CMAKE_CURRENT_LIST_DIR}")
+# src/bitprim-database-replier => ${bindir}
+#------------------------------------------------------------------------------
+add_executable(bitprim-db-replier
+  src/database.cpp
+  src/configuration.cpp
+  src/main.cpp
+  src/parser.cpp)
+
+if (NOT MSVC)
+  target_compile_definitions(bitprim-db-replier PUBLIC -DSYSCONFDIR=\"${SYSCONFDIR}\")
+endif()
+
+#target_link_libraries(bitprim-db-replier bitprim-protocol bitprim-database bitprim-core)
+#target_link_libraries(bitprim-db-replier ${Protobuf_LIBRARY})
+#target_link_libraries(bitprim-db-replier ${ZeroMQ_LIBRARIES})
+
+target_link_libraries(bitprim-db-replier bitprim-protocol bitprim-database)
+
+target_include_directories(bitprim-db-replier PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/replier/include)
+
+_group_sources(bitprim-db-replier "${CMAKE_CURRENT_LIST_DIR}/replier")
+
+
 
 # Tests
 #==============================================================================
@@ -454,57 +486,17 @@ endif()
 
 # Install
 #==============================================================================
-install(TARGETS bitprim-database
-  EXPORT bitprim-database
-  ARCHIVE DESTINATION lib)
 
-#set(_bitprim_headers
-#  # include_bitcoin_HEADERS =
-#  bitcoin/database.hpp
-#  # include_bitcoin_database_HEADERS =
-#  bitcoin/database/data_base.hpp
-#  bitcoin/database/define.hpp
-#  bitcoin/database/settings.hpp
-#  bitcoin/database/version.hpp
-#  # include_bitcoin_database_databases_HEADERS =
-#  bitcoin/database/databases/block_database.hpp
-#  bitcoin/database/databases/history_database.hpp
-#  bitcoin/database/databases/spend_database.hpp
-#  bitcoin/database/databases/stealth_database.hpp
-#  bitcoin/database/databases/transaction_database.hpp
-#
-#  # bitcoin/database/databases/unspent_database.hpp
-#  bitcoin/database/databases/unspent_database_v2.hpp
-#
-#  # include_bitcoin_database_impl_HEADERS =
-#  bitcoin/database/impl/hash_table_header.ipp
-#  bitcoin/database/impl/record_hash_table.ipp
-#  bitcoin/database/impl/record_hash_table_set.ipp
-#  bitcoin/database/impl/record_multimap.ipp
-#  bitcoin/database/impl/record_row.ipp
-#  bitcoin/database/impl/record_row_set.ipp
-#  bitcoin/database/impl/remainder.ipp
-#  bitcoin/database/impl/slab_hash_table.ipp
-#  bitcoin/database/impl/slab_row.ipp
-#  # include_bitcoin_database_memory_HEADERS =
-#  bitcoin/database/memory/accessor.hpp
-#  bitcoin/database/memory/allocator.hpp
-#  bitcoin/database/memory/memory.hpp
-#  bitcoin/database/memory/memory_map.hpp
-#  # include_bitcoin_database_primitives_HEADERS =
-#  bitcoin/database/primitives/hash_table_header.hpp
-#  bitcoin/database/primitives/record_hash_table.hpp
-#  bitcoin/database/primitives/record_hash_table_set.hpp
-#  bitcoin/database/primitives/record_list.hpp
-#  bitcoin/database/primitives/record_manager.hpp
-#  bitcoin/database/primitives/record_multimap.hpp
-#  bitcoin/database/primitives/record_multimap_iterable.hpp
-#  bitcoin/database/primitives/record_multimap_iterator.hpp
-#  bitcoin/database/primitives/slab_hash_table.hpp
-#  bitcoin/database/primitives/slab_manager.hpp
-#  # include_bitcoin_database_result_HEADERS =
-#  bitcoin/database/result/block_result.hpp
-#  bitcoin/database/result/transaction_result.hpp)
+#install(TARGETS bitprim-database bitprim-db-replier
+#  EXPORT bitprim-database
+#  ARCHIVE DESTINATION lib
+#  RUNTIME DESTINATION bin)
+
+install(TARGETS bitprim-db-replier
+  EXPORT bitprim-db-replier
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin)
+
 
 set(_bitprim_headers
     bitcoin/database/data_base.hpp
@@ -552,13 +544,15 @@ foreach (_header ${_bitprim_headers})
   install(FILES "include/${_header}" DESTINATION "include/${_directory}")
 endforeach()
 
+
+
 # Export
 #==============================================================================
 include(CMakePackageConfigHelpers)
 
-export(EXPORT bitprim-database
-  FILE "${CMAKE_CURRENT_BINARY_DIR}/bitprim-databaseTargets.cmake")
-export(PACKAGE bitprim-database)
+#export(EXPORT bitprim-database
+#  FILE "${CMAKE_CURRENT_BINARY_DIR}/bitprim-databaseTargets.cmake")
+#export(PACKAGE bitprim-database)
 
 if (UNIX)
   set(_config_package_location "lib/cmake")
@@ -566,9 +560,9 @@ elseif (WIN32)
   set(_config_package_location "cmake")
 endif()
 
-install(EXPORT bitprim-database
-  FILE bitprim-databaseTargets.cmake
-  DESTINATION ${_config_package_location})
+#install(EXPORT bitprim-database
+#  FILE bitprim-databaseTargets.cmake
+#  DESTINATION ${_config_package_location})
 
 configure_file(bitprim-databaseConfig.cmake.in
   "${CMAKE_CURRENT_BINARY_DIR}/bitprim-databaseConfig.cmake"
