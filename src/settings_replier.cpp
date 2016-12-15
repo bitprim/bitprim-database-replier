@@ -21,12 +21,11 @@
 
 #include <boost/filesystem.hpp>
 
-namespace libbitcoin {
-namespace database {
+namespace libbitcoin { namespace database {
 
 using namespace boost::filesystem;
 
-settings::settings()
+settings_replier::settings_replier()
   : file_growth_rate(50),
     index_start_height(0),
 
@@ -40,22 +39,19 @@ settings::settings()
 {
 }
 
-settings::settings(config::settings context)
-  : settings()
+settings_replier::settings_replier(config::settings context)
+  : settings_replier()
 {
     switch (context)
     {
-        case config::settings::mainnet:
-        {
+        case config::settings::mainnet: {
             block_table_buckets = 650000;
             transaction_table_buckets = 110000000;
             spend_table_buckets = 250000000;
             history_table_buckets = 107000000;
             break;
         }
-
-        case config::settings::testnet:
-        {
+        case config::settings::testnet: {
             // TODO: optimize for testnet.
             block_table_buckets = 650000;
             transaction_table_buckets = 110000000;
@@ -63,13 +59,10 @@ settings::settings(config::settings context)
             history_table_buckets = 107000000;
             break;
         }
-
         default:
-        case config::settings::none:
-        {
+        case config::settings::none: {
         }
     }
 }
 
-} // namespace database
-} // namespace libbitcoin
+}} // namespace libbitcoin::database

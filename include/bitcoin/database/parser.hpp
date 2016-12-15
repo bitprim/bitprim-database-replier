@@ -25,8 +25,6 @@
 
 #include <bitcoin/database/define.hpp>
 #include <bitcoin/database/configuration.hpp>
-// #include "define.hpp"
-// #include "configuration.hpp"
 
 namespace libbitcoin { namespace database {
 

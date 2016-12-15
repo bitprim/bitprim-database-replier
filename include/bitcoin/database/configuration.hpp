@@ -21,14 +21,13 @@
 #define LIBBITCOIN_DATABASE_CONFIGURATION_HPP
 
 #include <boost/filesystem.hpp>
+
 #include <bitcoin/database/define.hpp>
-// #include "define.hpp"
 #include <bitcoin/database/settings_replier.hpp>
 #include <bitcoin/network.hpp>
 
 
 namespace libbitcoin { namespace database {
-
 
 // Not localizable.
 #define BB_HELP_VARIABLE "help"
@@ -57,7 +56,7 @@ public:
     boost::filesystem::path file;
 
     /// Settings.
-    database::settings database;
+    database::settings_replier database;
     network::settings network;
 };
 

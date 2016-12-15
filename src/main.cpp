@@ -29,22 +29,11 @@
 #include <boost/format.hpp>
 #include <boost/utility/in_place_factory.hpp>
 
-
-// #include <bitcoin/blockchain.hpp>
-// #include <bitcoin/blockchain/configuration.hpp>
-// #include <bitcoin/blockchain/define.hpp>
-// #include <bitcoin/blockchain/parser.hpp>
-// #include <bitcoin/blockchain/settings.hpp>
-
-// #include "database.hpp"
-// #include "configuration.hpp"
-// #include "define.hpp"
-// #include "parser.hpp"
-
 #include <bitcoin/database/database_replier.hpp>
 #include <bitcoin/database/configuration.hpp>
 #include <bitcoin/database/define_replier.hpp>
 #include <bitcoin/database/parser.hpp>
+#include <bitcoin/database/settings.hpp>
 
 
 #include <bitcoin/protocol/database.pb.h>
@@ -170,7 +159,18 @@ static int main(parser const& metadata) {
         return do_initchain(metadata);
     }
 
-    data_base_ = boost::in_place(metadata.configured.database);
+    database::settings database_orig;
+
+    database_orig.file_growth_rate = metadata.configured.database.file_growth_rate;
+    database_orig.index_start_height = metadata.configured.database.index_start_height;
+    database_orig.block_table_buckets = metadata.configured.database.block_table_buckets;
+    database_orig.transaction_table_buckets = metadata.configured.database.transaction_table_buckets;
+    database_orig.spend_table_buckets = metadata.configured.database.spend_table_buckets;
+    database_orig.history_table_buckets = metadata.configured.database.history_table_buckets;
+    database_orig.directory = metadata.configured.database.directory;
+
+    // data_base_ = boost::in_place(metadata.configured.database);
+    data_base_ = boost::in_place(database_orig);
 
     auto ec = replier_.bind(metadata.configured.database.replier);
     assert(!ec);

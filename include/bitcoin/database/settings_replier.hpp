@@ -17,22 +17,20 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef LIBBITCOIN_DATABASE_SETTINGS_HPP
-#define LIBBITCOIN_DATABASE_SETTINGS_HPP
+#ifndef LIBBITCOIN_DATABASE_SETTINGS_REPLIER_HPP
+#define LIBBITCOIN_DATABASE_SETTINGS_REPLIER_HPP
 
 #include <cstdint>
 #include <boost/filesystem.hpp>
 #include <bitcoin/database/define.hpp>
 
-namespace libbitcoin {
-namespace database {
+namespace libbitcoin { namespace database {
 
 /// Common database configuration settings, properties not thread safe.
-class BCD_API settings
-{
+class BCD_API settings_replier {
 public:
-    settings();
-    settings(config::settings context);
+    settings_replier();
+    settings_replier(config::settings context);
 
     /// Properties.
     uint16_t file_growth_rate;
@@ -45,7 +43,7 @@ public:
     config::endpoint replier;
 };
 
-} // namespace database
-} // namespace libbitcoin
+}} // namespace libbitcoin::database
 
-#endif
+
+#endif /*LIBBITCOIN_DATABASE_SETTINGS_REPLIER_HPP*/
