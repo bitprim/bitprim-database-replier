@@ -23,7 +23,7 @@
 #include <boost/filesystem.hpp>
 #include <bitcoin/database/define.hpp>
 // #include "define.hpp"
-#include <bitcoin/database/settings.hpp>
+#include <bitcoin/database/settings_replier.hpp>
 #include <bitcoin/network.hpp>
 
 

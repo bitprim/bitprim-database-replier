@@ -236,7 +236,8 @@ add_executable(bitprim-db-replier
   src/database_replier.cpp
   src/configuration.cpp
   src/main.cpp
-  src/parser.cpp)
+  src/parser.cpp
+  src/settings_replier.cpp)
 
 target_include_directories(bitprim-db-replier PUBLIC
    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
