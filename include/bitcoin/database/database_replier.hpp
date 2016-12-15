@@ -23,8 +23,10 @@
 #include <memory>
 #include <boost/optional.hpp>
 
-#include <bitcoin/database.hpp>
-#include <bitcoin/database/define.hpp>
+//#include <bitcoin/database.hpp>
+//#include <bitcoin/database/define.hpp>
+#include <bitcoin/database/data_base.hpp>
+
 
 #include <bitcoin/protocol/database.pb.h>
 #include <bitcoin/protocol/replier.hpp>
