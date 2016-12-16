@@ -252,3 +252,10 @@ cmake-build-debug/CMakeFiles/tools.transaction_db.dir/DependInfo.cmake
 cmake-build-debug/CMakeFiles/tools.transaction_db.dir/flags.make
 cmake-build-debug/CMakeFiles/tools.transaction_db.dir/link.txt
 cmake-build-debug/CMakeFiles/tools.transaction_db.dir/progress.make
+cmake-build-debug/CMakeFiles/bitprim-db-replier.dir/build.make
+cmake-build-debug/CMakeFiles/bitprim-db-replier.dir/cmake_clean.cmake
+cmake-build-debug/CMakeFiles/bitprim-db-replier.dir/depend.make
+cmake-build-debug/CMakeFiles/bitprim-db-replier.dir/DependInfo.cmake
+cmake-build-debug/CMakeFiles/bitprim-db-replier.dir/flags.make
+cmake-build-debug/CMakeFiles/bitprim-db-replier.dir/link.txt
+cmake-build-debug/CMakeFiles/bitprim-db-replier.dir/progress.make
