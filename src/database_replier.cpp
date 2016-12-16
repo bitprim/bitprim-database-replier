@@ -31,6 +31,7 @@
 // #include <bitcoin/protocol/converter.hpp>
 #include <bitcoin/protocol/zmq/message.hpp>
 // #include "transaction_pool.hpp"
+#include <bitcoin/protocol/converter.hpp>
 
 using namespace libbitcoin::protocol;
 
@@ -53,6 +54,27 @@ static protocol::database::top_reply dispatch_top(
     return reply;
 }
 
+//! bool data_base::insert(const chain::block& block, size_t height)
+static protocol::database::insert_block_reply dispatch_insert_block(
+    const protocol::database::insert_block_request& request) {
+
+    BITCOIN_ASSERT(data_base_);
+
+    size_t height =  request.height();
+    chain::block block;
+    //PARSE BLOCK FROM MESSAGE
+    
+    //TODO CHECK IF SUCCESFULL
+    protocol::converter converter;
+    converter.from_protocol(&(request.blockr()),block);
+
+    bool const result = data_base_->insert(block,height);
+
+    protocol::database::insert_block_reply reply;
+    reply.set_result(result);
+    return reply;
+}
+
 
 
 
@@ -65,6 +87,11 @@ zmq::message dispatch(
         case protocol::database::request::kTop: {
             reply.enqueue_protobuf_message(
                 dispatch_top(request.top()));
+            break;
+        }
+        case protocol::database::request::kInsertBlock: {
+            reply.enqueue_protobuf_message(
+                dispatch_insert_block(request.insert_block()));
             break;
         }
     }
