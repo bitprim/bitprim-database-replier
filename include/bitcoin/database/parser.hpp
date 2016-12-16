@@ -22,6 +22,7 @@
 
 #include <ostream>
 #include <bitcoin/bitcoin.hpp>
+
 #include <bitcoin/database/define.hpp>
 #include <bitcoin/database/configuration.hpp>
 
@@ -29,11 +30,11 @@ namespace libbitcoin { namespace database {
 
 /// Parse configurable values from environment variables, settings file, and
 /// command line positional and non-positional options.
-class BCB_API parser
+class /*BCB_API*/ parser
   : public config::parser
 {
 public:
-    parser(const bc::settings& context);
+    parser(const config::settings& context);
     parser(const configuration& defaults);
 
     /// Parse all configuration into member settings.

@@ -12,7 +12,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Process options.
+# Process options.data_base.hpp
 #==============================================================================
 # Implement --with-tests and declare WITH_TESTS.
 #------------------------------------------------------------------------------
@@ -70,6 +70,14 @@ endif()
 #if (NOT TARGET bitprim-core)
 #  find_package(bitprim-core 3.0.0 REQUIRED)
 #endif()
+
+# Require bitprim-network of at least version 3.0.0 and output ${bitprim_network_CPPFLAGS/LIBS/PKG}.
+#------------------------------------------------------------------------------
+if (NOT TARGET bitprim-network)
+  find_package(bitprim-network 3.0.0 REQUIRED)
+endif()
+
+
 
 # Set flags.
 #==============================================================================
@@ -225,10 +233,16 @@ endif()
 # src/bitprim-database-replier => ${bindir}
 #------------------------------------------------------------------------------
 add_executable(bitprim-db-replier
-  src/database.cpp
+  src/database_replier.cpp
   src/configuration.cpp
   src/main.cpp
-  src/parser.cpp)
+  src/parser.cpp
+  src/settings_replier.cpp)
+
+target_include_directories(bitprim-db-replier PUBLIC
+   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+   $<INSTALL_INTERFACE:include>)
+
 
 if (NOT MSVC)
   target_compile_definitions(bitprim-db-replier PUBLIC -DSYSCONFDIR=\"${SYSCONFDIR}\")
@@ -238,7 +252,7 @@ endif()
 #target_link_libraries(bitprim-db-replier ${Protobuf_LIBRARY})
 #target_link_libraries(bitprim-db-replier ${ZeroMQ_LIBRARIES})
 
-target_link_libraries(bitprim-db-replier bitprim-protocol bitprim-database)
+target_link_libraries(bitprim-db-replier bitprim-protocol bitprim-database bitprim-network)
 
 target_include_directories(bitprim-db-replier PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/replier/include)
@@ -499,45 +513,8 @@ install(TARGETS bitprim-db-replier
 
 
 set(_bitprim_headers
-    bitcoin/database/data_base.hpp
-    bitcoin/database/databases/block_database.hpp
-    bitcoin/database/databases/history_database.hpp
-    bitcoin/database/databases/spend_database.hpp
-    bitcoin/database/databases/stealth_database.hpp
-    bitcoin/database/databases/transaction_database.hpp
-#    bitcoin/database/databases/unspent_database.hpp
-    bitcoin/database/databases/unspent_database_v2.hpp
-    bitcoin/database/define.hpp
-    bitcoin/database/impl/hash_table_header.ipp
-    bitcoin/database/impl/record_hash_table.ipp
-    bitcoin/database/impl/record_hash_table_set.ipp
-    bitcoin/database/impl/record_multimap.ipp
-    bitcoin/database/impl/record_row.ipp
-    bitcoin/database/impl/record_row_set.ipp
-    bitcoin/database/impl/remainder.ipp
-    bitcoin/database/impl/slab_hash_table.ipp
-    bitcoin/database/impl/slab_row.ipp
-    bitcoin/database/memory/accessor.hpp
-    bitcoin/database/memory/allocator.hpp
-    bitcoin/database/memory/memory.hpp
-    bitcoin/database/memory/memory_map.hpp
-    bitcoin/database/primitives/hash_table_header.hpp
-    bitcoin/database/primitives/mem_hash_set.hpp
-    bitcoin/database/primitives/record_hash_table.hpp
-    bitcoin/database/primitives/record_hash_table_set.hpp
-    bitcoin/database/primitives/record_list.hpp
-    bitcoin/database/primitives/record_manager.hpp
-    bitcoin/database/primitives/record_multimap.hpp
-    bitcoin/database/primitives/record_multimap_iterable.hpp
-    bitcoin/database/primitives/record_multimap_iterator.hpp
-    bitcoin/database/primitives/slab_hash_table.hpp
-    bitcoin/database/primitives/slab_manager.hpp
-    bitcoin/database/result/block_result.hpp
-    bitcoin/database/result/transaction_result.hpp
-    bitcoin/database/settings.hpp
-    bitcoin/database/store.hpp
-    bitcoin/database/version.hpp
-    bitcoin/database.hpp)
+    # bitcoin/database/data_base.hpp
+)
 
 foreach (_header ${_bitprim_headers})
   get_filename_component(_directory "${_header}" DIRECTORY)

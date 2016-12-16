@@ -17,12 +17,14 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#include "database.hpp"
+
+// #include "database_replier.hpp"
+#include <bitcoin/database/database_replier.hpp>
 
 #include <memory>
 #include <boost/optional.hpp>
 
-#include <bitcoin/database.hpp>
+//#include <bitcoin/database.hpp>
 // #include <bitcoin/blockchain/define.hpp>
 
 #include <bitcoin/protocol/database.pb.h>

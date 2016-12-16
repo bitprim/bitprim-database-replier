@@ -18,8 +18,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-//#include <bitcoin/database/configuration.hpp>
-#include "configuration.hpp"
+#include <bitcoin/database/configuration.hpp>
+// #include "configuration.hpp"
 
 #include <cstddef>
 
@@ -28,18 +28,22 @@ namespace libbitcoin { namespace database {
 // Construct with defaults derived from given context.
 configuration::configuration(config::settings context)
   : help(false),
+    initchain(false),
     settings(false),
     version(false),
-    database(context)
+    database(context),
+    network(context)
 {}
 
 // Copy constructor.
 configuration::configuration(configuration const& other)
   : help(other.help),
+    initchain(other.initchain),
     settings(other.settings),
     version(other.version),
     file(other.file),
-    database(other.database)
+    database(other.database),
+    network(other.network)
 {}
 
 }} // namespace libbitcoin::database
