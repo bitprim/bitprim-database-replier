@@ -205,6 +205,11 @@ options_metadata parser::load_settings()
         value<uint32_t>(&configured.database.history_table_buckets),
         "History hash table size, defaults to 107000000."
     )
+    (
+        "database.replier",
+        value<config::endpoint>(&configured.database.replier),
+        "Replier bind endpoint."
+    )
     ;
 
     return description;
