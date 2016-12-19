@@ -23,10 +23,7 @@
 #include <memory>
 #include <boost/optional.hpp>
 
-//#include <bitcoin/database.hpp>
-//#include <bitcoin/database/define.hpp>
 #include <bitcoin/database/data_base.hpp>
-
 
 #include <bitcoin/protocol/database.pb.h>
 #include <bitcoin/protocol/replier.hpp>
@@ -36,10 +33,10 @@ using namespace libbitcoin::protocol;
 
 namespace libbitcoin { namespace database {
 
-extern /*BCB_INTERNAL*/ replier replier_;
-extern /*BCB_INTERNAL*/ boost::optional<data_base> data_base_;
+extern BCD_INTERNAL replier replier_;
+extern BCD_INTERNAL boost::optional<data_base> data_base_;
 
-zmq::message /*BCB_INTERNAL*/ dispatch(
+zmq::message BCD_INTERNAL dispatch(
     protocol::database::request const& request);
 
 }} // namespace libbitcoin::database

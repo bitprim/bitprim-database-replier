@@ -34,8 +34,8 @@ settings_replier::settings_replier()
     transaction_table_buckets(0),
     spend_table_buckets(0),
     history_table_buckets(0),
-
-    directory("blockchain")
+    directory("blockchain"),
+    use_testnet_rules(false)
 {
 }
 
@@ -57,6 +57,7 @@ settings_replier::settings_replier(config::settings context)
             transaction_table_buckets = 110000000;
             spend_table_buckets = 250000000;
             history_table_buckets = 107000000;
+            use_testnet_rules = true;
             break;
         }
         default:

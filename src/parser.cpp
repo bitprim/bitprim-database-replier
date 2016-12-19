@@ -40,6 +40,7 @@ using namespace boost::filesystem;
 using namespace boost::program_options;
 //using namespace bc::config;
 
+
 // Initialize configuration by copying the given instance.
 parser::parser(configuration const& defaults)
   : configured(defaults)
@@ -49,9 +50,13 @@ parser::parser(configuration const& defaults)
 parser::parser(config::settings const& context)
   : configured(context)
 {
+    // A node doesn't require history, and history is expensive.
+    configured.database.index_start_height = max_uint32;
+
     // Default endpoint for database replier.
     configured.database.replier = { "tcp://*:5502" };
 }
+
 
 options_metadata parser::load_options()
 {
@@ -185,6 +190,14 @@ options_metadata parser::load_settings()
         value<uint16_t>(&configured.database.file_growth_rate),
         "Full database files increase by this percentage, defaults to 50."
     )
+    /*
+    (
+        "database.index_start_height",
+        value<uint32_t>(&configured.database.index_start_height),
+        "The lower limit of address and spend indexing, defaults to 0."
+    )
+    */
+    
     (
         "database.block_table_buckets",
         value<uint32_t>(&configured.database.block_table_buckets),
@@ -205,6 +218,16 @@ options_metadata parser::load_settings()
         value<uint32_t>(&configured.database.history_table_buckets),
         "History hash table size, defaults to 107000000."
     )
+    (
+        "database.replier",
+        value<config::endpoint>(&configured.database.replier),
+        "Replier bind endpoint."
+    )
+    (
+        "database.use_testnet_rules",
+        value<bool>(&configured.database.use_testnet_rules),
+        "Use testnet rules for determination of work required, defaults to false."
+    )    
     ;
 
     return description;

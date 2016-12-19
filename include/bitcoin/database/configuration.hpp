@@ -41,7 +41,7 @@ namespace libbitcoin { namespace database {
 #define BB_ENVIRONMENT_VARIABLE_PREFIX "BD_"
 
 /// Full node configuration, thread safe.
-class /*BCB_API*/ configuration {
+class BCD_API configuration {
 public:
     configuration(config::settings context);
     configuration(configuration const& other);

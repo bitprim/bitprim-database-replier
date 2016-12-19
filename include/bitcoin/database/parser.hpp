@@ -30,7 +30,7 @@ namespace libbitcoin { namespace database {
 
 /// Parse configurable values from environment variables, settings file, and
 /// command line positional and non-positional options.
-class /*BCB_API*/ parser
+class BCD_API parser
   : public config::parser
 {
 public:

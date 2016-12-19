@@ -24,13 +24,8 @@
 #include <memory>
 #include <boost/optional.hpp>
 
-//#include <bitcoin/database.hpp>
-// #include <bitcoin/blockchain/define.hpp>
-
 #include <bitcoin/protocol/database.pb.h>
-// #include <bitcoin/protocol/converter.hpp>
 #include <bitcoin/protocol/zmq/message.hpp>
-// #include "transaction_pool.hpp"
 
 using namespace libbitcoin::protocol;
 

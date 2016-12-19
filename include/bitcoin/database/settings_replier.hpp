@@ -41,6 +41,7 @@ public:
     uint32_t history_table_buckets;
     boost::filesystem::path directory;
     config::endpoint replier;
+    bool use_testnet_rules;
 };
 
 }} // namespace libbitcoin::database

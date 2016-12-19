@@ -35,7 +35,6 @@
 #include <bitcoin/database/parser.hpp>
 #include <bitcoin/database/settings.hpp>
 
-
 #include <bitcoin/protocol/database.pb.h>
 #include <bitcoin/protocol/replier.hpp>
 #include <bitcoin/protocol/zmq/context.hpp>
@@ -52,11 +51,18 @@ using boost::format;
 static zmq::context context;
 replier replier_(context);
 
-//std::ostream output_;
-//std::ostream error_;
-
-
-
+#define BN_INITCHAIN_TRY \
+    "Failed to test directory %1% with error, '%2%'."
+#define BN_UNINITIALIZED_CHAIN \
+    "The %1% directory is not initialized, run: bn --initchain"
+#define BN_NODE_INTERRUPT \
+    "Press CTRL-C to stop the node."
+#define BN_NODE_STARTING \
+    "Please wait while the node is starting..."
+#define BN_INITCHAIN_COMPLETE \
+    "Completed initialization."
+#define BN_INITIALIZING_CHAIN \
+    "Please wait while initializing %1% directory..."
 #define BN_INITCHAIN_EXISTS \
     "Failed because the directory %1% already exists."
 #define BN_INITCHAIN_NEW \
@@ -69,6 +75,8 @@ replier replier_(context);
     "================= startup =================="
 
 static constexpr int directory_exists = 0;
+static constexpr int directory_not_found = 2;
+
 
 void initialize_output(parser const& metadata) {
     LOG_DEBUG(LOG_DATABASE) << BN_LOG_HEADER;
@@ -86,25 +94,23 @@ void initialize_output(parser const& metadata) {
     }
 }
 
-bool do_initchain(parser const& metadata) {
+bool do_initchain(parser const& metadata, database::settings const& database_orig /*, data_base& data_base*/) {
     initialize_output(metadata);
 
     boost::system::error_code ec;
     const auto& directory = metadata.configured.database.directory;
 
     if (create_directories(directory, ec)) {
-        // LOG_INFO(LOG_DATABASE) << format(BN_INITIALIZING_CHAIN) % directory;
+        LOG_INFO(LOG_DATABASE) << format(BN_INITIALIZING_CHAIN) % directory;
 
-        // // Unfortunately we are still limited to a choice of hardcoded chains.
-        // const auto genesis = metadata.configured.chain.use_testnet_rules ?
-        //     block::genesis_testnet() : block::genesis_mainnet();
+        // Unfortunately we are still limited to a choice of hardcoded chains.
+        const auto genesis = metadata.configured.database.use_testnet_rules ?
+            libbitcoin::chain::block::genesis_testnet() : libbitcoin::chain::block::genesis_mainnet();
 
-        // const auto& settings = metadata.configured.database;
-        // const auto result = data_base(settings).create(genesis);
+        const auto result = data_base(database_orig).create(genesis);
 
-        // LOG_INFO(LOG_DATABASE) << BN_INITCHAIN_COMPLETE;
-        // return result;
-        return true;
+        LOG_INFO(LOG_DATABASE) << BN_INITCHAIN_COMPLETE;
+        return result;
     }
 
     if (ec.value() == directory_exists) {
@@ -147,20 +153,33 @@ bool init_logger(parser const& metadata, std::ostream& output_, std::ostream& er
 }
 
 
-static int main(parser const& metadata) {
 
-    std::ostream output_(std::cout.rdbuf());
-    std::ostream error_(std::cerr.rdbuf());
+// Use missing directory as a sentinel indicating lack of initialization.
+bool verify_directory(parser const& metadata)
+{
+    boost::system::error_code ec;
+    const auto& directory = metadata.configured.database.directory;
 
-    init_logger(metadata, output_, error_);
+    if (exists(directory, ec))
+        return true;
 
-    const auto& config = metadata.configured;
-    if (config.initchain) {
-        return do_initchain(metadata);
+    if (ec.value() == directory_not_found)
+    {
+        LOG_ERROR(LOG_DATABASE) << format(BN_UNINITIALIZED_CHAIN) % directory;
+        return false;
     }
 
-    database::settings database_orig;
+    const auto message = ec.message();
+    LOG_ERROR(LOG_DATABASE) << format(BN_INITCHAIN_TRY) % directory % message;
+    return false;
+}
 
+static int main(parser const& metadata) {
+
+    init_logger(metadata, std::cout, std::cerr);
+
+
+    database::settings database_orig;
     database_orig.file_growth_rate = metadata.configured.database.file_growth_rate;
     database_orig.index_start_height = metadata.configured.database.index_start_height;
     database_orig.block_table_buckets = metadata.configured.database.block_table_buckets;
@@ -169,9 +188,24 @@ static int main(parser const& metadata) {
     database_orig.history_table_buckets = metadata.configured.database.history_table_buckets;
     database_orig.directory = metadata.configured.database.directory;
 
-    // data_base_ = boost::in_place(metadata.configured.database);
+    const auto& config = metadata.configured;
+    if (config.initchain) {
+        return do_initchain(metadata, database_orig);
+    } 
+
     data_base_ = boost::in_place(database_orig);
 
+    
+    LOG_INFO(LOG_DATABASE) << BN_NODE_INTERRUPT;
+    LOG_INFO(LOG_DATABASE) << BN_NODE_STARTING;
+
+    if (!verify_directory(metadata)) {
+        return false;
+    }
+    
+    data_base_->open();
+    
+    //std::cout << "binding replier\n";
     auto ec = replier_.bind(metadata.configured.database.replier);
     assert(!ec);
 
@@ -185,6 +219,8 @@ static int main(parser const& metadata) {
         assert(!ec);
     }
 
+    //std::cout << "exiting database::main()\n";
+
     return 0;
 }
 
@@ -194,7 +230,10 @@ BC_USE_LIBBITCOIN_MAIN
 
 int libbitcoin::main(int argc, char* argv[]) {
     set_utf8_stdio();
+    
     database::parser metadata(config::settings::mainnet);
+    //database::parser metadata(config::settings::testnet);
+    
     auto const& args = const_cast<char const**>(argv);
 
     if (!metadata.parse(argc, args, cerr)) {
@@ -202,6 +241,10 @@ int libbitcoin::main(int argc, char* argv[]) {
     }
 
     
-
-    return database::main(metadata);
+    //return database::main(metadata);
+    auto res = database::main(metadata);
+    //std::cout << "exiting main()\n";
+    //std::cout << "res: " << res << "\n";
+    //return res ? console_result::okay : console_result::failure;
+    return res;
 }
