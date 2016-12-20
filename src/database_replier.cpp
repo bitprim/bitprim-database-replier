@@ -34,7 +34,7 @@ namespace libbitcoin { namespace database {
 
 boost::optional<data_base> data_base_;
 
-//! bool block_database:: top(size_t& out_height) const;
+//! bool block_database::top(size_t& out_height) const;
 static protocol::database::top_reply dispatch_top(
     const protocol::database::top_request& request) {
 
@@ -49,29 +49,204 @@ static protocol::database::top_reply dispatch_top(
     return reply;
 }
 
+//! block_result block_database::get(size_t height) const
+static protocol::database::get_reply dispatch_get(
+    const protocol::database::get_request& request) {
+
+    BITCOIN_ASSERT(data_base_);
+
+    size_t height = request.height();
+    block_result const result = data_base_->blocks().get(height);
+
+    protocol::database::get_reply reply;
+    reply.set_result(result);
+    hash_digest hash = out_difficulty.hash();
+    converter{}.to_protocol(request, *reply.mutable_result());      //TODO: Fer: implement to_protocol() for block_result
+
+    return reply;
+}
+
+//! block_result block_database::get(const hash_digest& hash) const
+static protocol::database::get_by_hash_reply dispatch_get_by_hash(
+    const protocol::database::get_by_hash_request& request) {
+
+    BITCOIN_ASSERT(data_base_);
+   
+    hash_digest hash;
+    converter{}.from_protocol(&request.hash(), hash);
+    block_result const result = data_base_->blocks().get(hash);
+
+    protocol::database::get_by_hash_reply reply;
+    reply.set_result(result);
+    hash_digest hash = out_difficulty.hash();
+    converter{}.to_protocol(request, *reply.mutable_result());      //TODO: Fer: implement to_protocol() for block_result
+
+    return reply;
+}
+
+
+
 //! bool data_base::insert(const chain::block& block, size_t height)
 static protocol::database::insert_block_reply dispatch_insert_block(
     const protocol::database::insert_block_request& request) {
 
     BITCOIN_ASSERT(data_base_);
 
-    size_t height =  request.height();
+    size_t height = request.height();
     chain::block block;
     //PARSE BLOCK FROM MESSAGE
     
     //TODO CHECK IF SUCCESFULL
     protocol::converter converter;
-    converter.from_protocol(&(request.blockr()),block);
+    converter.from_protocol(&(request.blockr()), block);
 
-    bool const result = data_base_->insert(block,height);
+    bool const result = data_base_->insert(block, height);
 
     protocol::database::insert_block_reply reply;
     reply.set_result(result);
     return reply;
 }
 
+//! bool data_base::push(const block& block, size_t height)
+static protocol::database::push_reply dispatch_push(
+    const protocol::database::push_request& request) {
+
+    BITCOIN_ASSERT(data_base_);
+
+    size_t height = request.height();
+    chain::block block;
+    //PARSE BLOCK FROM MESSAGE
+    
+    //TODO CHECK IF SUCCESFULL
+    protocol::converter converter;
+    converter.from_protocol(&(request.block()), block);
+
+    bool const result = data_base_->insert(block, height);
+
+    protocol::database::push_reply reply;
+    reply.set_result(result);
+    return reply;
+}
+
+//! bool data_base::pop_above(block::list& out_blocks, const hash_digest& fork_hash)
+static protocol::database::pop_above_reply dispatch_pop_above(
+    const protocol::database::pop_above_request& request) {
+
+    BITCOIN_ASSERT(data_base_);
+
+    size_t height = request.height();
+    chain::block block;
+    //PARSE BLOCK FROM MESSAGE
+    
+    //TODO CHECK IF SUCCESFULL
+    protocol::converter converter;
+    converter.from_protocol(&(request.block()), block);
 
 
+    block::list out_blocks;
+    bool const result = data_base_->pop_above(out_blocks, fork_hash);
+
+    protocol::database::pop_above_reply reply;
+    reply.set_out_blocks(out_blocks);
+    reply.set_result(result);
+    return reply;
+}
+
+
+//! bool store::flush_lock()
+static protocol::database::flush_lock_reply dispatch_flush_lock(
+    const protocol::database::flush_lock_request& request) {
+
+    BITCOIN_ASSERT(data_base_);
+
+    bool const result = data_base_->flush_lock();
+
+    protocol::database::flush_lock_reply reply;
+    reply.set_result(result);
+    return reply;
+}
+
+//! bool store::flush_unlock()
+static protocol::database::flush_unlock_reply dispatch_flush_unlock(
+    const protocol::database::flush_unlock_request& request) {
+
+    BITCOIN_ASSERT(data_base_);
+
+    bool const result = data_base_->flush_unlock();
+
+    protocol::database::flush_unlock_reply reply;
+    reply.set_result(result);
+    return reply;
+}
+
+//! store::handle store::begin_read() const
+static protocol::database::begin_read_reply dispatch_begin_read(
+    const protocol::database::begin_read_request& request) {
+
+    BITCOIN_ASSERT(data_base_);
+
+    size_t const result = data_base_->begin_read();
+
+    protocol::database::begin_read_reply reply;
+    reply.set_result(result);
+    return reply;
+}
+
+//! bool store::begin_write(bool lock)
+static protocol::database::begin_write_reply dispatch_begin_write(
+    const protocol::database::begin_write_request& request) {
+
+    BITCOIN_ASSERT(data_base_);
+
+    bool lock = request.lock();
+    bool const result = data_base_->begin_write(lock);
+
+    protocol::database::begin_write_reply reply;
+    reply.set_result(result);
+    return reply;
+}
+
+//! bool store::end_write(bool unlock)
+static protocol::database::end_write_reply dispatch_end_write(
+    const protocol::database::end_write_request& request) {
+
+    BITCOIN_ASSERT(data_base_);
+
+    bool unlock = request.unlock();
+    bool const result = data_base_->end_write(unlock);
+
+    protocol::database::end_write_reply reply;
+    reply.set_result(result);
+    return reply;
+}
+
+//! bool store::is_write_locked(handle value) const
+static protocol::database::is_write_locked_reply dispatch_is_write_locked(
+    const protocol::database::is_write_locked_request& request) {
+
+    BITCOIN_ASSERT(data_base_);
+
+    size_t handle = request.handle();
+    bool const result = data_base_->is_write_locked(handle);
+
+    protocol::database::is_write_locked_reply reply;
+    reply.set_result(result);
+    return reply;
+}
+
+//! bool store::is_read_valid(handle value) const
+static protocol::database::is_read_valid_reply dispatch_is_read_valid(
+    const protocol::database::is_read_valid_request& request) {
+
+    BITCOIN_ASSERT(data_base_);
+
+    size_t handle = request.handle();
+    bool const result = data_base_->is_read_valid(handle);
+
+    protocol::database::is_read_valid_reply reply;
+    reply.set_result(result);
+    return reply;
+}
 
 //!
 zmq::message dispatch(
@@ -84,11 +259,73 @@ zmq::message dispatch(
                 dispatch_top(request.top()));
             break;
         }
+        case protocol::database::request::kGet: {
+            reply.enqueue_protobuf_message(
+                dispatch_get(request.get()));
+            break;
+        }
+        case protocol::database::request::kGetByHash: {
+            reply.enqueue_protobuf_message(
+                dispatch_get_by_hash(request.get_by_hash()));
+            break;
+        }
+        
+        
         case protocol::database::request::kInsertBlock: {
             reply.enqueue_protobuf_message(
                 dispatch_insert_block(request.insert_block()));
             break;
         }
+        case protocol::database::request::kPush: {
+            reply.enqueue_protobuf_message(
+                dispatch_push(request.push()));
+            break;
+        }
+        case protocol::database::request::kPopAbove: {
+            reply.enqueue_protobuf_message(
+                dispatch_pop_above(request.pop_above()));
+            break;
+        }
+        
+        
+        
+        
+        case protocol::database::request::kFlushLock: {
+            reply.enqueue_protobuf_message(
+                dispatch_flush_lock(request.flush_lock()));
+            break;
+        }
+        case protocol::database::request::kFlushUnlock: {
+            reply.enqueue_protobuf_message(
+                dispatch_flush_unlock(request.flush_unlock()));
+            break;
+        }
+        case protocol::database::request::kBeginRead: {
+            reply.enqueue_protobuf_message(
+                dispatch_begin_read(request.begin_read()));
+            break;
+        }
+        case protocol::database::request::kBeginWrite: {
+            reply.enqueue_protobuf_message(
+                dispatch_begin_write(request.begin_write()));
+            break;
+        }
+        case protocol::database::request::kEndWrite: {
+            reply.enqueue_protobuf_message(
+                dispatch_end_write(request.end_write()));
+            break;
+        }
+        case protocol::database::request::kIsWriteLocked: {
+            reply.enqueue_protobuf_message(
+                dispatch_is_write_locked(request.is_write_locked()));
+            break;
+        }
+        case protocol::database::request::kIsReadValid: {
+            reply.enqueue_protobuf_message(
+                dispatch_is_read_valid(request.is_read_valid()));
+            break;
+        }
+
     }
     return reply;
 }
