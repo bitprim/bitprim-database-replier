@@ -59,9 +59,7 @@ static protocol::database::get_reply dispatch_get(
     block_result const result = data_base_->blocks().get(height);
 
     protocol::database::get_reply reply;
-    reply.set_result(result);
-    hash_digest hash = out_difficulty.hash();
-    converter{}.to_protocol(request, *reply.mutable_result());      //TODO: Fer: implement to_protocol() for block_result
+    converter{}.to_protocol(result, *reply.mutable_result());      //TODO: Fer: implement to_protocol() for block_result
 
     return reply;
 }
@@ -77,9 +75,7 @@ static protocol::database::get_by_hash_reply dispatch_get_by_hash(
     block_result const result = data_base_->blocks().get(hash);
 
     protocol::database::get_by_hash_reply reply;
-    reply.set_result(result);
-    hash_digest hash = out_difficulty.hash();
-    converter{}.to_protocol(request, *reply.mutable_result());      //TODO: Fer: implement to_protocol() for block_result
+    converter{}.to_protocol(result, *reply.mutable_result());      //TODO: Fer: implement to_protocol() for block_result
 
     return reply;
 }
@@ -121,7 +117,7 @@ static protocol::database::push_reply dispatch_push(
     protocol::converter converter;
     converter.from_protocol(&(request.block()), block);
 
-    bool const result = data_base_->insert(block, height);
+    bool const result = data_base_->push(block, height);
 
     protocol::database::push_reply reply;
     reply.set_result(result);
@@ -134,21 +130,17 @@ static protocol::database::pop_above_reply dispatch_pop_above(
 
     BITCOIN_ASSERT(data_base_);
 
-    size_t height = request.height();
-    chain::block block;
-    //PARSE BLOCK FROM MESSAGE
+    hash_digest fork_hash;
+    converter{}.from_protocol(&request.fork_hash(), fork_hash);
     
-    //TODO CHECK IF SUCCESFULL
-    protocol::converter converter;
-    converter.from_protocol(&(request.block()), block);
-
 
     block::list out_blocks;
     bool const result = data_base_->pop_above(out_blocks, fork_hash);
 
     protocol::database::pop_above_reply reply;
-    reply.set_out_blocks(out_blocks);
     reply.set_result(result);
+    converter{}.to_protocol(out_blocks, *reply.mutable_out_blocks());      //TODO: Fer: implement to_protocol() for block::list
+
     return reply;
 }
 
