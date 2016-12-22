@@ -28,9 +28,301 @@
 #include <bitcoin/protocol/zmq/message.hpp>
 #include <bitcoin/protocol/converter.hpp>
 
+//#include <bitcoin/utility/binary.hpp>
+#include <bitcoin/bitcoin/utility/binary.hpp>
+
 using namespace libbitcoin::protocol;
 
+
+
+
 namespace libbitcoin { namespace database {
+
+
+//TODO: Fer: mover de aca a un lugar mas apropiado
+std::string pack_hash(hash_digest in) {
+    return std::string(in.begin(), in.end());
+}
+
+/*
+
+/// Deferred read block result.
+class BCD_API block_result
+{
+public:
+    block_result(const memory_ptr slab);
+    block_result(const memory_ptr slab, hash_digest&& hash);
+    block_result(const memory_ptr slab, const hash_digest& hash);
+
+    /// True if this block result is valid (found).
+    operator bool() const;
+
+    /// The block header hash (from cache).
+    const hash_digest& hash() const;
+
+    /// The block header.
+    chain::header header() const;
+
+    /// The height of this block in the chain.
+    size_t height() const;
+
+    /// The header.bits of this block.
+    uint32_t bits() const;
+
+    /// The header.timestamp of this block.
+    uint32_t timestamp() const;
+
+    /// The header.version of this block.
+    uint32_t version() const;
+
+    /// The number of transactions in this block.
+    size_t transaction_count() const;
+
+    /// A transaction hash where index < transaction_count.
+    hash_digest transaction_hash(size_t index) const;
+
+private:
+    const memory_ptr slab_;
+    const hash_digest hash_;
+};
+* 
+
+
+
+
+message block_result {
+    bool valid = 1;
+    bytes hash = 2;                 // 32-bytes
+    block_header header = 3;
+    uint32 height = 4;
+    uint32 bits = 5;
+    uint32 timestamp = 6;
+    uint32 version = 7;
+
+    uint32 transaction_count = 8;
+    repeated bytes transactions_hashes = 9;
+}
+
+*/
+
+
+//TODO: Fer: mover de aca a un lugar mas apropiado
+
+bool to_protocol(block_result const& blk_result, protocol::block_result& result) {
+    
+    result.set_allocated_header(converter{}.to_protocol(blk_result.header()));
+    if (!result.has_header()) {
+        return false;
+    }
+
+    auto repeated_transactions_hashes = result.mutable_transactions_hashes();
+    
+    auto tx_count = blk_result.transaction_count();
+    for (size_t i = 0; i < tx_count; ++i) {
+
+        auto tx_hash = blk_result.transaction_hash(i);
+
+        if (!converter{}.to_protocol(tx_hash, *(repeated_transactions_hashes->Add()))) {
+            result.clear_header();
+            result.clear_transactions_hashes();
+            return false;
+        }
+    }
+    
+    result.set_valid(blk_result);
+    result.set_hash(pack_hash(blk_result.hash()));
+    result.set_height(blk_result.height());
+    result.set_bits(blk_result.bits());
+    result.set_timestamp(blk_result.timestamp());
+    result.set_version(blk_result.version());
+    result.set_transaction_count(blk_result.transaction_count());
+    
+    return true;
+}
+
+/*
+protocol::block_result* converter::to_protocol(block_result const& block) {
+    std::unique_ptr<protocol::block> result(new protocol::block());
+
+    if (!to_protocol(block, *(result.get())))
+        result.reset();
+
+    return result.release();
+}
+*/
+
+
+
+
+/*
+
+/// Deferred read transaction result.
+class BCD_API transaction_result
+{
+public:
+    transaction_result(const memory_ptr slab);
+    transaction_result(const memory_ptr slab, hash_digest&& hash);
+    transaction_result(const memory_ptr slab, const hash_digest& hash);
+
+    /// True if this transaction result is valid (found).
+    operator bool() const;
+
+    /// The transaction hash (from cache).
+    const hash_digest& hash() const;
+
+    /// The height of the block which includes the transaction.
+    size_t height() const;
+
+    /// The ordinal position of the transaction within its block.
+    size_t position() const;
+
+    /// True if all transaction outputs are spent at or below fork_height.
+    bool is_spent(size_t fork_height) const;
+
+    /// The output at the specified index within this transaction.
+    chain::output output(uint32_t index) const;
+
+    /// The transaction.
+    chain::transaction transaction() const;
+
+private:
+    const memory_ptr slab_;
+    const hash_digest hash_;
+};
+
+
+
+message transaction_result {
+    bool valid = 1;                 //TODO: Fer: not necessary
+    bytes hash = 2;                 // 32-bytes
+    uint64 height = 3;
+    uint64 position = 4;
+    tx transaction = 5;
+}
+
+*/
+
+
+
+bool to_protocol(transaction_result const& tx_result, protocol::transaction_result& result) {
+
+    auto mutable_transaction = result.mutable_transaction();
+    if (!converter{}.to_protocol(tx_result.transaction(), *mutable_transaction)) {
+        result.clear_transaction();
+        return false;
+    }
+    
+    result.set_valid(tx_result);
+    result.set_hash(pack_hash(tx_result.hash()));
+    result.set_height(tx_result.height());
+    result.set_position(tx_result.position());
+    
+    return true;
+}
+
+
+/*
+enum point_kind {
+    point_kind_output = 0;
+    point_kind_spend = 1;  
+}
+
+ 
+message history_compact {
+    point_kind kind = 1;
+    point point = 2;
+    uint32 height = 3;
+    uint64 value_or_previous_checksum = 4;
+}
+}
+
+
+/home/fernando/dev/112bit/database-replier/bitprim-database/src/database_replier.cpp:500:60: 
+* error: no matching function for call to ‘to_protocol(const libbitcoin::chain::history_compact&, libbitcoin::protocol::history_compact&)’
+         to_protocol(hist_compact, *(repeated_result->Add()));
+
+
+
+*/
+
+
+bool to_protocol(chain::history_compact const& h_compact, protocol::history_compact& result) {
+
+    auto mutable_point = result.mutable_point();
+    if (!converter{}.to_protocol(h_compact.point, *mutable_point)) {
+        result.clear_point();
+        return false;
+    }
+    
+    
+    
+    result.set_kind(protocol::point_kind(h_compact.kind));
+    result.set_height(h_compact.height);
+    result.set_value_or_previous_checksum(h_compact.value);
+    //result.set_value_or_previous_checksum(h_compact.previous_checksum);
+    
+    return true;
+}
+
+
+/*
+message binary {
+    bytes blocks = 1;
+    uint32 final_block_excess = 2; //uint8 not supported by Protobuf
+}
+*/
+
+
+bool from_protocol(protocol::binary const* binary, libbitcoin::binary& result) {
+    if (binary == nullptr)
+        return false;
+
+    const auto blocks_text = binary->blocks();
+    const data_chunk data(blocks_text.begin(), blocks_text.end());
+
+    //binary::binary(size_type size, data_slice blocks)
+    result = libbitcoin::binary(data.size(), data);
+    
+    return true;
+}
+
+
+
+/*
+message stealth_compact {
+    bytes ephemeral_public_key_hash = 1;
+    bytes public_key_hash = 2;
+    bytes transaction_hash = 3;
+}
+*/
+
+
+
+bool to_protocol(chain::stealth_compact const& s_compact, protocol::stealth_compact& result) {
+    
+    result.set_ephemeral_public_key_hash(pack_hash(s_compact.ephemeral_public_key_hash));
+    
+    result.set_transaction_hash(pack_hash(s_compact.transaction_hash));
+
+    //result.set_public_key_hash(pack_hash(s_compact.public_key_hash));
+    //converter{}.to_protocol(s_compact.public_key_hash, std::string& result)
+    
+    auto mutable_public_key_hash = result.mutable_public_key_hash();
+    if (!converter{}.to_protocol(s_compact.public_key_hash, *mutable_public_key_hash)) {
+        result.clear_public_key_hash();
+        return false;
+    }
+    
+    return true;
+}
+
+
+// ----------------------------------------------------------------
+
+
+
+
+
 
 boost::optional<data_base> data_base_;
 
@@ -59,7 +351,8 @@ static protocol::database::get_reply dispatch_get(
     block_result const result = data_base_->blocks().get(height);
 
     protocol::database::get_reply reply;
-    converter{}.to_protocol(result, *reply.mutable_result());      //TODO: Fer: implement to_protocol() for block_result
+    //converter{}.to_protocol(result, *reply.mutable_result());      //TODO: Fer: implement to_protocol() for block_result
+    to_protocol(result, *reply.mutable_result());      //TODO: Fer: implement to_protocol() for block_result
 
     return reply;
 }
@@ -75,7 +368,32 @@ static protocol::database::get_by_hash_reply dispatch_get_by_hash(
     block_result const result = data_base_->blocks().get(hash);
 
     protocol::database::get_by_hash_reply reply;
-    converter{}.to_protocol(result, *reply.mutable_result());      //TODO: Fer: implement to_protocol() for block_result
+    //converter{}.to_protocol(result, *reply.mutable_result());      //TODO: Fer: implement to_protocol() for block_result
+    to_protocol(result, *reply.mutable_result());      //TODO: Fer: implement to_protocol() for block_result
+
+    return reply;
+}
+
+//! bool block_database::gaps(heights& out_gaps) const
+static protocol::database::gaps_reply dispatch_gaps(
+    const protocol::database::gaps_request& request) {
+
+    BITCOIN_ASSERT(data_base_);
+
+    block_database::heights out_gaps;
+    bool const result = data_base_->blocks().gaps(out_gaps);
+
+    protocol::database::gaps_reply reply;
+    reply.set_result(result);
+    
+    
+    //converter{}.to_protocol(out_gaps, *reply.mutable_out_gaps());      //TODO: Fer: implement to_protocol() for block_database::heights aka std::vector<unsigned long>
+    
+    //auto repeated_out_gaps = result.mutable_out_gaps();
+    
+    for (auto const& gap : out_gaps) {
+        reply.add_out_gaps(gap);
+    }
 
     return reply;
 }
@@ -110,12 +428,10 @@ static protocol::database::push_reply dispatch_push(
     BITCOIN_ASSERT(data_base_);
 
     size_t height = request.height();
-    chain::block block;
-    //PARSE BLOCK FROM MESSAGE
     
+    chain::block block;
+    converter{}.from_protocol(&request.block(), block);
     //TODO CHECK IF SUCCESFULL
-    protocol::converter converter;
-    converter.from_protocol(&(request.block()), block);
 
     bool const result = data_base_->push(block, height);
 
@@ -132,14 +448,20 @@ static protocol::database::pop_above_reply dispatch_pop_above(
 
     hash_digest fork_hash;
     converter{}.from_protocol(&request.fork_hash(), fork_hash);
-    
 
-    block::list out_blocks;
+    chain::block::list out_blocks;
     bool const result = data_base_->pop_above(out_blocks, fork_hash);
 
     protocol::database::pop_above_reply reply;
     reply.set_result(result);
-    converter{}.to_protocol(out_blocks, *reply.mutable_out_blocks());      //TODO: Fer: implement to_protocol() for block::list
+    //converter{}.to_protocol(out_blocks, *reply.mutable_out_blocks());      //TODO: Fer: implement to_protocol() for chain::block::list
+
+    auto repeated_out_blocks = reply.mutable_out_blocks();
+
+    for (auto const& out_block : out_blocks) {
+        converter{}.to_protocol(out_block, *(repeated_out_blocks->Add()));
+    }
+
 
     return reply;
 }
@@ -251,13 +573,65 @@ static protocol::database::get_transaction_reply dispatch_get_transaction(
     transaction_result const result = data_base_->transactions().get(hash);
 
     protocol::database::get_transaction_reply reply;
-    
-    //reply.set_result(result);
-    //hash_digest hash = out_difficulty.hash();
-    //converter{}.to_protocol(request, *reply.mutable_result());      //TODO: implement to_protocol() for transaction_result
+    to_protocol(result, *reply.mutable_result());      //TODO: Fer: implement to_protocol() for transaction_result
 
     return reply;
 }
+
+
+
+//! history_compact::list history_database::get(const short_hash& key, size_t limit, size_t from_height) const
+static protocol::database::get_history_database_reply dispatch_get_history_database(
+    const protocol::database::get_history_database_request& request) {
+
+    BITCOIN_ASSERT(data_base_);
+   
+    short_hash key;
+    converter{}.from_protocol(&request.key(), key);
+    chain::history_compact::list const result = data_base_->history().get(key, request.limit(), request.from_height());
+
+    protocol::database::get_history_database_reply reply;
+    //converter{}.to_protocol(result, *reply.mutable_result());      //TODO: Fer: implement to_protocol() for history_compact::list
+    
+    auto repeated_result = reply.mutable_result();
+
+    for (auto const& hist_compact : result) {
+        to_protocol(hist_compact, *(repeated_result->Add()));
+    }
+
+    return reply;
+}
+
+
+
+
+//! stealth_compact::list stealth_database::scan(const binary& filter, size_t from_height) const
+static protocol::database::stealth_database_scan_reply dispatch_stealth_database_scan(
+    const protocol::database::stealth_database_scan_request& request) {
+
+    BITCOIN_ASSERT(data_base_);
+   
+    binary filter;
+    from_protocol(&request.filter(), filter);
+    chain::stealth_compact::list const result = data_base_->stealth().scan(filter, request.from_height());
+
+    protocol::database::stealth_database_scan_reply reply;
+    //to_protocol(result, *reply.mutable_result());      //TODO: Fer: implement to_protocol() for chain::stealth_compact::list
+    
+    
+    auto repeated_result = reply.mutable_result();
+
+    for (auto const& s_compact : result) {
+        to_protocol(s_compact, *(repeated_result->Add()));
+    }
+    
+
+    return reply;
+}
+
+
+
+
 
 //!
 zmq::message dispatch(
@@ -278,6 +652,11 @@ zmq::message dispatch(
         case protocol::database::request::kGetByHash: {
             reply.enqueue_protobuf_message(
                 dispatch_get_by_hash(request.get_by_hash()));
+            break;
+        }
+        case protocol::database::request::kGaps: {
+            reply.enqueue_protobuf_message(
+                dispatch_gaps(request.gaps()));
             break;
         }
         
@@ -341,6 +720,18 @@ zmq::message dispatch(
                 dispatch_get_transaction(request.get_transaction()));
             break;
         }
+        case protocol::database::request::kGetHistoryDatabase: {
+            reply.enqueue_protobuf_message(
+                dispatch_get_history_database(request.get_history_database()));
+            break;
+        }
+        case protocol::database::request::kStealthDatabaseScan: {
+            reply.enqueue_protobuf_message(
+                dispatch_stealth_database_scan(request.stealth_database_scan()));
+            break;
+        }
+        
+        
 
     }
     return reply;
