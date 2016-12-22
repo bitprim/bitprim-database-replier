@@ -240,6 +240,25 @@ static protocol::database::is_read_valid_reply dispatch_is_read_valid(
     return reply;
 }
 
+//! transaction_result transaction_database::get(const hash_digest& hash) const
+static protocol::database::get_transaction_reply dispatch_get_transaction(
+    const protocol::database::get_transaction_request& request) {
+
+    BITCOIN_ASSERT(data_base_);
+   
+    hash_digest hash;
+    converter{}.from_protocol(&request.hash(), hash);
+    transaction_result const result = data_base_->transactions().get(hash);
+
+    protocol::database::get_transaction_reply reply;
+    
+    //reply.set_result(result);
+    //hash_digest hash = out_difficulty.hash();
+    //converter{}.to_protocol(request, *reply.mutable_result());      //TODO: implement to_protocol() for transaction_result
+
+    return reply;
+}
+
 //!
 zmq::message dispatch(
     const protocol::database::request& request)
@@ -315,6 +334,11 @@ zmq::message dispatch(
         case protocol::database::request::kIsReadValid: {
             reply.enqueue_protobuf_message(
                 dispatch_is_read_valid(request.is_read_valid()));
+            break;
+        }
+        case protocol::database::request::kGetTransaction: {
+            reply.enqueue_protobuf_message(
+                dispatch_get_transaction(request.get_transaction()));
             break;
         }
 
