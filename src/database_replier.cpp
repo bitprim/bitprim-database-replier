@@ -321,6 +321,55 @@ bool to_protocol(chain::stealth_compact const& s_compact, protocol::stealth_comp
 
 
 
+bool from_protocol(protocol::binary const* binary, libbitcoin::binary& result) {
+    if (binary == nullptr)
+        return false;
+
+    const auto blocks_text = binary->blocks();
+    const data_chunk data(blocks_text.begin(), blocks_text.end());
+
+    //binary::binary(size_type size, data_slice blocks)
+    result = libbitcoin::binary(data.size(), data);
+    
+    return true;
+}
+
+bool from_protocol(protocol::block_result const* blk_result, block_result& result) {
+
+    bool valid_;
+    const hash_digest hash_;
+    chain::header header_;
+    std::vector<hash_digest> tx_hashes_;
+    
+    
+    result.set_valid(blk_result->valid());
+    
+    if (blk_result->valid()) {
+    
+        hash_digest hash;
+        converter{}.from_protocol(blk_result->hash(), hash);
+        result.set_hash(hash);
+        
+        chain::header header;
+        converter{}.from_protocol(blk_result->header(), header);
+        result.set_header(header);
+
+        std::vector<hash_digest> tx_hashes;
+
+        for (auto const& tx_hash : blk_result->transactions_hashes()) {
+            converter{}.from_protocol(tx_hash, hash);
+            tx_hashes.push_back(hash);
+        }
+        result.set_transaction_hashes(tx_hashes);
+    }
+s
+    return true;
+}
+
+// ----------------------------------------------------------------
+
+
+
 
 
 
@@ -331,13 +380,21 @@ static protocol::database::top_reply dispatch_top(
     const protocol::database::top_request& request) {
 
     BITCOIN_ASSERT(data_base_);
+    
+    std::cout << "dispatch_top - 1\n";
 
     size_t out_height;
     bool const result = data_base_->blocks().top(out_height);
 
+    std::cout << "dispatch_top - 2\n";
+
+
     protocol::database::top_reply reply;
     reply.set_out_height(out_height);
     reply.set_result(result);
+    
+    std::cout << "dispatch_top - 3\n";
+
     return reply;
 }
 
@@ -351,8 +408,7 @@ static protocol::database::get_reply dispatch_get(
     block_result const result = data_base_->blocks().get(height);
 
     protocol::database::get_reply reply;
-    //converter{}.to_protocol(result, *reply.mutable_result());      //TODO: Fer: implement to_protocol() for block_result
-    to_protocol(result, *reply.mutable_result());      //TODO: Fer: implement to_protocol() for block_result
+    to_protocol(result, *reply.mutable_result());
 
     return reply;
 }
@@ -368,8 +424,7 @@ static protocol::database::get_by_hash_reply dispatch_get_by_hash(
     block_result const result = data_base_->blocks().get(hash);
 
     protocol::database::get_by_hash_reply reply;
-    //converter{}.to_protocol(result, *reply.mutable_result());      //TODO: Fer: implement to_protocol() for block_result
-    to_protocol(result, *reply.mutable_result());      //TODO: Fer: implement to_protocol() for block_result
+    to_protocol(result, *reply.mutable_result());
 
     return reply;
 }
@@ -388,7 +443,6 @@ static protocol::database::gaps_reply dispatch_gaps(
     
     
     //converter{}.to_protocol(out_gaps, *reply.mutable_out_gaps());      //TODO: Fer: implement to_protocol() for block_database::heights aka std::vector<unsigned long>
-    
     //auto repeated_out_gaps = result.mutable_out_gaps();
     
     for (auto const& gap : out_gaps) {
@@ -397,6 +451,8 @@ static protocol::database::gaps_reply dispatch_gaps(
 
     return reply;
 }
+
+
 
 
 
@@ -461,7 +517,6 @@ static protocol::database::pop_above_reply dispatch_pop_above(
     for (auto const& out_block : out_blocks) {
         converter{}.to_protocol(out_block, *(repeated_out_blocks->Add()));
     }
-
 
     return reply;
 }
