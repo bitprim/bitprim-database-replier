@@ -526,12 +526,21 @@ static protocol::database::pop_above_reply dispatch_pop_above(
 static protocol::database::flush_lock_reply dispatch_flush_lock(
     const protocol::database::flush_lock_request& request) {
 
+    std::cout << "flush_lock - 1\n";
+
     BITCOIN_ASSERT(data_base_);
+
+    std::cout << "flush_lock - 2\n";
 
     bool const result = data_base_->flush_lock();
 
+    std::cout << "flush_lock - 3\n";
+
     protocol::database::flush_lock_reply reply;
     reply.set_result(result);
+    
+    std::cout << "flush_lock - 4\n";
+    
     return reply;
 }
 
@@ -693,6 +702,7 @@ zmq::message dispatch(
     const protocol::database::request& request)
 {
     std::cout << "receiving a ZMQ/Protobuf message\n";
+    request.PrintDebugString();
     
     zmq::message reply;
     switch (request.request_type_case()) {
