@@ -319,7 +319,7 @@ bool to_protocol(chain::stealth_compact const& s_compact, protocol::stealth_comp
 
 // ----------------------------------------------------------------
 
-
+/*
 
 bool from_protocol(protocol::binary const* binary, libbitcoin::binary& result) {
     if (binary == nullptr)
@@ -362,10 +362,10 @@ bool from_protocol(protocol::block_result const* blk_result, block_result& resul
         }
         result.set_transaction_hashes(tx_hashes);
     }
-s
+
     return true;
 }
-
+*/
 // ----------------------------------------------------------------
 
 
