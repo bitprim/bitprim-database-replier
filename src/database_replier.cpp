@@ -106,36 +106,43 @@ message block_result {
 */
 
 
+
 //TODO: Fer: mover de aca a un lugar mas apropiado
 
 bool to_protocol(block_result const& blk_result, protocol::block_result& result) {
     
-    result.set_allocated_header(converter{}.to_protocol(blk_result.header()));
-    if (!result.has_header()) {
-        return false;
-    }
+	if (blk_result) {
 
-    auto repeated_transactions_hashes = result.mutable_transactions_hashes();
-    
-    auto tx_count = blk_result.transaction_count();
-    for (size_t i = 0; i < tx_count; ++i) {
+		result.set_valid(true);
 
-        auto tx_hash = blk_result.transaction_hash(i);
+		result.set_allocated_header(converter{}.to_protocol(blk_result.header()));
+		if (!result.has_header()) {
+		    return false;
+		}
 
-        if (!converter{}.to_protocol(tx_hash, *(repeated_transactions_hashes->Add()))) {
-            result.clear_header();
-            result.clear_transactions_hashes();
-            return false;
-        }
-    }
-    
-    result.set_valid(blk_result);
-    result.set_hash(pack_hash(blk_result.hash()));
-    result.set_height(blk_result.height());
-    result.set_bits(blk_result.bits());
-    result.set_timestamp(blk_result.timestamp());
-    result.set_version(blk_result.version());
-    result.set_transaction_count(blk_result.transaction_count());
+		auto repeated_transactions_hashes = result.mutable_transactions_hashes();
+		
+		auto tx_count = blk_result.transaction_count();
+		for (size_t i = 0; i < tx_count; ++i) {
+
+		    auto tx_hash = blk_result.transaction_hash(i);
+
+		    if (!converter{}.to_protocol(tx_hash, *(repeated_transactions_hashes->Add()))) {
+		        result.clear_header();
+		        result.clear_transactions_hashes();
+		        return false;
+		    }
+		}
+		
+		result.set_hash(pack_hash(blk_result.hash()));
+		result.set_height(blk_result.height());
+		result.set_bits(blk_result.bits());
+		result.set_timestamp(blk_result.timestamp());
+		result.set_version(blk_result.version());
+		result.set_transaction_count(blk_result.transaction_count());
+	} else {
+    	result.set_valid(false);
+	}
     
     return true;
 }
@@ -206,17 +213,20 @@ message transaction_result {
 
 bool to_protocol(transaction_result const& tx_result, protocol::transaction_result& result) {
 
-    auto mutable_transaction = result.mutable_transaction();
-    if (!converter{}.to_protocol(tx_result.transaction(), *mutable_transaction)) {
-        result.clear_transaction();
-        return false;
+	if (tx_result){
+		result.set_valid(true);
+		auto mutable_transaction = result.mutable_transaction();
+		if (!converter{}.to_protocol(tx_result.transaction(), *mutable_transaction)) {
+		    result.clear_transaction();
+		    return false;
+		}
+		result.set_hash(pack_hash(tx_result.hash()));
+		result.set_height(tx_result.height());
+		result.set_position(tx_result.position());
     }
-    
-    result.set_valid(tx_result);
-    result.set_hash(pack_hash(tx_result.hash()));
-    result.set_height(tx_result.height());
-    result.set_position(tx_result.position());
-    
+	else{
+		result.set_valid(false);
+	}
     return true;
 }
 
