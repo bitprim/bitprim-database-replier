@@ -164,7 +164,7 @@ static protocol::database::top_reply dispatch_top(
     reply.set_out_height(out_height);
     reply.set_result(result);
     
-    std::cout << "dispatch_top - value: "<<out_height<<"\n";
+    //std::cout << "dispatch_top - out_height: "<< out_height <<"\n";
 
     return reply;
 }
@@ -180,6 +180,8 @@ static protocol::database::get_reply dispatch_get(
 
     protocol::database::get_reply reply;
     to_protocol(result, *reply.mutable_result());
+
+	//std::cout << "dispatch_get - reply.result().height(): " << reply.result().height() << "\n";
 
     return reply;
 }
@@ -232,7 +234,7 @@ static protocol::database::insert_block_reply dispatch_insert_block(
     //TODO CHECK IF SUCCESFULL
     protocol::converter converter;
     converter.from_protocol(&(request.blockr()), block);
-
+    
     bool const result = data_base_->insert(block, height);
 
     protocol::database::insert_block_reply reply;
@@ -288,7 +290,7 @@ static protocol::database::pop_above_reply dispatch_pop_above(
 static protocol::database::flush_lock_reply dispatch_flush_lock(
     const protocol::database::flush_lock_request& request) {
 
-    std::cout << "flush_lock - 1\n";
+    //std::cout << "flush_lock - 1\n";
 
     BITCOIN_ASSERT(data_base_);
 
