@@ -22,7 +22,6 @@
 
 #include <ostream>
 #include <bitcoin/bitcoin.hpp>
-
 #include <bitcoin/database/define.hpp>
 #include <bitcoin/database/configuration.hpp>
 
