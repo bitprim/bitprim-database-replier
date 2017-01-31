@@ -1,0 +1,12 @@
+# - Config file for the BITPRIM_DATABASE_REPLIER package
+#
+#  BITPRIM_DATABASE_REPLIER_INCLUDE_DIRS - include directories for BITPRIM_DATABASE_REPLIER
+#  BITPRIM_DATABASE_REPLIER_LIBRARIES    - libraries to link against
+
+get_filename_component(BITPRIM_DATABASE_REPLIER_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+set(BITPRIM_DATABASE_REPLIER_INCLUDE_DIRS "@CONF_INCLUDE_DIRS@")
+
+include("${BITPRIM_DATABASE_REPLIER_CMAKE_DIR}/bitprim-database-replierTargets.cmake")
+set(BITPRIM_DATABASE_REPLIER_LIBRARIES bitprim-database-replier)
+
+find_package(bitprim-core 3.0.0 REQUIRED)

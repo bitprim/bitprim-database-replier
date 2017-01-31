@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.4)
 
-# bitprim-database
+# bitprim-database-replier
 #==============================================================================
-project(bitprim-database
+project(bitprim-database-replier
   VERSION 3.0.0
   LANGUAGES CXX C)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -185,79 +185,42 @@ function(_group_sources target sources_dir)
   set_target_properties(${target} PROPERTIES FOLDER "database")
 endfunction()
 
-# src/bitprim-database.la => ${libdir}
-#------------------------------------------------------------------------------
-set(MODE STATIC)
-if (ENABLE_SHARED)
-  set(MODE SHARED)
-endif()
-
-#add_library(bitprim-database ${MODE}
-#  src/data_base.cpp
-#  src/databases/block_database.cpp
-#  src/databases/history_database.cpp
-#  src/databases/spend_database.cpp
-#  src/databases/stealth_database.cpp
-#  src/databases/transaction_database.cpp
-#  src/databases/unspent_database_v2.cpp
-#  src/memory/accessor.cpp
-#  src/memory/allocator.cpp
-#  src/memory/memory_map.cpp
-#  src/mman-win32/mman.c
-#  src/primitives/record_list.cpp
-#  src/primitives/record_manager.cpp
-#  src/primitives/record_multimap_iterable.cpp
-#  src/primitives/record_multimap_iterator.cpp
-#  src/primitives/slab_manager.cpp
-#  src/result/block_result.cpp
-#     src/result/transaction_result.cpp
-#     src/settings.cpp
-#     src/store.cpp)
-
-#         target_include_directories(bitprim-database PUBLIC
-#   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-#   $<INSTALL_INTERFACE:include>)
-
-# target_compile_definitions(bitprim-database PUBLIC -DBCD_STATIC)
-
-# target_link_libraries(bitprim-database bitprim-core)
-
-# _group_sources(bitprim-database "${CMAKE_CURRENT_LIST_DIR}")
-
-
-
-# Database Replier
-#==============================================================================
+# # src/bitprim-database.la => ${libdir}
+# #------------------------------------------------------------------------------
+# set(MODE STATIC)
+# if (ENABLE_SHARED)
+#   set(MODE SHARED)
+# endif()
 
 
 # src/bitprim-database-replier => ${bindir}
 #------------------------------------------------------------------------------
-add_executable(bitprim-db-replier
+add_executable(bitprim-database-replier
   src/database_replier.cpp
   src/configuration.cpp
   src/main.cpp
   src/parser.cpp
   src/settings_replier.cpp)
 
-target_include_directories(bitprim-db-replier PUBLIC
+target_include_directories(bitprim-database-replier PUBLIC
    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
    $<INSTALL_INTERFACE:include>)
 
 
 if (NOT MSVC)
-  target_compile_definitions(bitprim-db-replier PUBLIC -DSYSCONFDIR=\"${SYSCONFDIR}\")
+  target_compile_definitions(bitprim-database-replier PUBLIC -DSYSCONFDIR=\"${SYSCONFDIR}\")
 endif()
 
-#target_link_libraries(bitprim-db-replier bitprim-protocol bitprim-database bitprim-core)
-#target_link_libraries(bitprim-db-replier ${Protobuf_LIBRARY})
-#target_link_libraries(bitprim-db-replier ${ZeroMQ_LIBRARIES})
+#target_link_libraries(bitprim-database-replier bitprim-protocol bitprim-database bitprim-core)
+#target_link_libraries(bitprim-database-replier ${Protobuf_LIBRARY})
+#target_link_libraries(bitprim-database-replier ${ZeroMQ_LIBRARIES})
 
-target_link_libraries(bitprim-db-replier bitprim-protocol bitprim-database bitprim-network)
+target_link_libraries(bitprim-database-replier bitprim-protocol bitprim-database bitprim-network)
 
-target_include_directories(bitprim-db-replier PRIVATE
+target_include_directories(bitprim-database-replier PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/replier/include)
 
-_group_sources(bitprim-db-replier "${CMAKE_CURRENT_LIST_DIR}/replier")
+_group_sources(bitprim-database-replier "${CMAKE_CURRENT_LIST_DIR}/replier")
 
 
 
@@ -288,226 +251,37 @@ endif()
 
 # local: test/bitprim_database_test
 #------------------------------------------------------------------------------
-if (WITH_TESTS)
-#  add_executable(bitprim_database_test
-#    test/block_database.cpp
-#    test/data_base.cpp
-#    test/hash_table.cpp
-#    test/history_database.cpp
-#    test/main.cpp
-#    test/spend_database.cpp
-#    test/structure.cpp
-#    test/transaction_database.cpp
-#    # test/unspent_database.cpp
-#    # test/unspent_database_v2.cpp
-#    )
-    add_executable(bitprim_database_test
-        test/block_database.cpp
-        test/data_base.cpp
-        test/hash_table.cpp
-        test/history_database.cpp
-        test/main.cpp
-        test/spend_database.cpp
-        test/structure.cpp
-        test/transaction_database.cpp
-#        test/unspent_database.cpp
-    )
-
-
-
-  target_link_libraries(bitprim_database_test PUBLIC bitprim-database)
-  _group_sources(bitprim_database_test "${CMAKE_CURRENT_LIST_DIR}/test")
-
-  _add_tests(bitprim_database_test
-    database_tests
-    hash_table_tests
-    structure_tests
-    data_base_tests)
-endif()
-
-# Tools
-#==============================================================================
-# local: tools/block_db/block_db
-#------------------------------------------------------------------------------
-if (WITH_TOOLS)
-  add_executable(tools.block_db
-    tools/block_db/block_db.cpp)
-  target_link_libraries(tools.block_db bitprim-database)
-  _group_sources(tools.block_db "${CMAKE_CURRENT_LIST_DIR}/tools/block_db")
-endif()
-
-# local: tools/count_records/count_records
-#------------------------------------------------------------------------------
-if (WITH_TOOLS)
-  add_executable(tools.count_records
-    tools/count_records/count_records.cpp)
-  target_link_libraries(tools.count_records bitprim-database)
-  _group_sources(tools.count_records "${CMAKE_CURRENT_LIST_DIR}/tools/count_records")
-endif()
-
-# local: tools/history_db/history_db
-#------------------------------------------------------------------------------
-if (WITH_TOOLS)
-  add_executable(tools.history_db
-    tools/history_db/history_db.cpp)
-  target_link_libraries(tools.history_db bitprim-database)
-  _group_sources(tools.history_db "${CMAKE_CURRENT_LIST_DIR}/tools/history_db")
-endif()
-
-# local: tools/initchain/initchain_db
-#------------------------------------------------------------------------------
-if (WITH_TOOLS)
-  add_executable(tools.initchain_db
-    tools/initchain/initchain.cpp)
-  target_link_libraries(tools.initchain_db bitprim-database)
-  _group_sources(tools.initchain_db "${CMAKE_CURRENT_LIST_DIR}/tools/initchain")
-endif()
-
-# local: tools/mmr_add_row/mmr_add_row
-#------------------------------------------------------------------------------
-if (WITH_TOOLS)
-  add_executable(tools.mmr_add_row
-    tools/mmr_add_row/mmr_add_row.cpp)
-  target_link_libraries(tools.mmr_add_row bitprim-database)
-  _group_sources(tools.mmr_add_row "${CMAKE_CURRENT_LIST_DIR}/tools/mmr_add_row")
-endif()
-
-# local: tools/mmr_create/mmr_create
-#------------------------------------------------------------------------------
-if (WITH_TOOLS)
-  add_executable(tools.mmr_create
-    tools/mmr_create/mmr_create.cpp)
-  target_link_libraries(tools.mmr_create bitprim-database)
-  _group_sources(tools.mmr_create "${CMAKE_CURRENT_LIST_DIR}/tools/mmr_create")
-endif()
-
-# local: tools/mmr_delete_last_row/mmr_delete_last_row
-#------------------------------------------------------------------------------
-if (WITH_TOOLS)
-  add_executable(tools.mmr_delete_last_row
-    tools/mmr_delete_last_row/mmr_delete_last_row.cpp)
-  target_link_libraries(tools.mmr_delete_last_row bitprim-database)
-  _group_sources(tools.mmr_delete_last_row "${CMAKE_CURRENT_LIST_DIR}/tools/mmr_delete_last_row")
-endif()
-
-# local: tools/mmr_lookup/mmr_lookup
-#------------------------------------------------------------------------------
-if (WITH_TOOLS)
-  add_executable(tools.mmr_lookup
-    tools/mmr_lookup/mmr_lookup.cpp)
-  target_link_libraries(tools.mmr_lookup bitprim-database)
-  _group_sources(tools.mmr_lookup "${CMAKE_CURRENT_LIST_DIR}/tools/mmr_lookup")
-endif()
-
-# local: tools/read_htdb_record_value/read_htdb_record_value
-#------------------------------------------------------------------------------
-if (WITH_TOOLS)
-  add_executable(tools.read_htdb_record_value
-    tools/read_htdb_record_value/read_htdb_record_value.cpp)
-  target_link_libraries(tools.read_htdb_record_value bitprim-database)
-  _group_sources(tools.read_htdb_record_value "${CMAKE_CURRENT_LIST_DIR}/tools/read_htdb_record_value")
-endif()
-# local: tools/read_htdb_slab_value/read_htdb_slab_value
-#------------------------------------------------------------------------------
-if (WITH_TOOLS)
-  add_executable(tools.read_htdb_slab_value
-    tools/read_htdb_slab_value/read_htdb_slab_value.cpp)
-  target_link_libraries(tools.read_htdb_slab_value bitprim-database)
-  _group_sources(tools.read_htdb_slab_value "${CMAKE_CURRENT_LIST_DIR}/tools/read_htdb_slab_value")
-endif()
-
-# local: tools/show_array/show_array
-#------------------------------------------------------------------------------
-if (WITH_TOOLS)
-  add_executable(tools.show_array
-    tools/show_array/show_array.cpp)
-  target_link_libraries(tools.show_array bitprim-database)
-  _group_sources(tools.show_array "${CMAKE_CURRENT_LIST_DIR}/tools/show_array")
-endif()
-
-# local: tools/show_linked_records/show_linked_records
-#------------------------------------------------------------------------------
-if (WITH_TOOLS)
-  add_executable(tools.show_linked_records
-    tools/show_linked_records/show_linked_records.cpp)
-  target_link_libraries(tools.show_linked_records bitprim-database)
-  _group_sources(tools.show_linked_records "${CMAKE_CURRENT_LIST_DIR}/tools/initchain")
-endif()
-
-# local: tools/show_records/show_records
-#------------------------------------------------------------------------------
-if (WITH_TOOLS)
-  add_executable(tools.show_records
-    tools/show_records/show_records.cpp)
-  target_link_libraries(tools.show_records bitprim-database)
-  _group_sources(tools.show_records "${CMAKE_CURRENT_LIST_DIR}/tools/show_records")
-endif()
-
-# local: tools/spend_db/spend_db
-#------------------------------------------------------------------------------
-if (WITH_TOOLS)
-  add_executable(tools.spend_db
-    tools/spend_db/spend_db.cpp)
-  target_link_libraries(tools.spend_db bitprim-database)
-  _group_sources(tools.spend_db "${CMAKE_CURRENT_LIST_DIR}/tools/spend_db")
-endif()
-
-# local: tools/stealth_db/stealth_db
-#------------------------------------------------------------------------------
-if (WITH_TOOLS)
-  add_executable(tools.stealth_db
-    tools/stealth_db/stealth_db.cpp)
-  target_link_libraries(tools.stealth_db bitprim-database)
-  _group_sources(tools.stealth_db "${CMAKE_CURRENT_LIST_DIR}/tools/stealth_db")
-endif()
-
-# local: tools/transaction_db/transaction_db
-#------------------------------------------------------------------------------
-if (WITH_TOOLS)
-  add_executable(tools.transaction_db
-    tools/transaction_db/transaction_db.cpp)
-  target_link_libraries(tools.transaction_db bitprim-database)
-  _group_sources(tools.transaction_db "${CMAKE_CURRENT_LIST_DIR}/tools/transaction_db")
-endif()
-
-# local: tools/unspent_db/unspent_db
-#------------------------------------------------------------------------------
-# if (WITH_TOOLS)
-#   add_executable(tools.unspent_db
-#     tools/unspent_db/unspent_db.cpp)
-#   target_link_libraries(tools.unspent_db bitprim-database)
-# endif()
-
-# local: tools/build_utxo/build_utxo
-#------------------------------------------------------------------------------
-# if (WITH_TOOLS)
-#   add_executable(tools.build_utxo
-#     tools/build_utxo/build_utxo.cpp)
-#   target_link_libraries(tools.build_utxo bitprim-database)
-#   _group_sources(tools.transaction_db "${CMAKE_CURRENT_LIST_DIR}/tools/build_utxo")
+# if (WITH_TESTS)
+#     add_executable(bitprim_database_test
+#         test/block_database.cpp
+#         test/data_base.cpp
+#         test/hash_table.cpp
+#         test/history_database.cpp
+#         test/main.cpp
+#         test/spend_database.cpp
+#         test/structure.cpp
+#         test/transaction_database.cpp
+# #        test/unspent_database.cpp
+#     )
+# 
+#   target_link_libraries(bitprim_database_test PUBLIC bitprim-database)
+#   _group_sources(bitprim_database_test "${CMAKE_CURRENT_LIST_DIR}/test")
+# 
+#   _add_tests(bitprim_database_test
+#     database_tests
+#     hash_table_tests
+#     structure_tests
+#     data_base_tests)
 # endif()
 
 
-# # local: tools/check_scripts/check_scripts
-# #------------------------------------------------------------------------------
-# if (WITH_TOOLS)
-#   add_executable(tools.check_scripts
-#     tools/check_scripts/check_scripts.cpp)
-#   target_link_libraries(tools.check_scripts bitprim-database)
-#   _group_sources(tools.transaction_db "${CMAKE_CURRENT_LIST_DIR}/tools/check_scripts")
-# endif()
 
 
 # Install
 #==============================================================================
 
-#install(TARGETS bitprim-database bitprim-db-replier
-#  EXPORT bitprim-database
-#  ARCHIVE DESTINATION lib
-#  RUNTIME DESTINATION bin)
-
-install(TARGETS bitprim-db-replier
-  EXPORT bitprim-db-replier
+install(TARGETS bitprim-database-replier
+  EXPORT bitprim-database-replier
   ARCHIVE DESTINATION lib
   RUNTIME DESTINATION bin)
 
@@ -527,31 +301,23 @@ endforeach()
 #==============================================================================
 include(CMakePackageConfigHelpers)
 
-#export(EXPORT bitprim-database
-#  FILE "${CMAKE_CURRENT_BINARY_DIR}/bitprim-databaseTargets.cmake")
-#export(PACKAGE bitprim-database)
-
 if (UNIX)
   set(_config_package_location "lib/cmake")
 elseif (WIN32)
   set(_config_package_location "cmake")
 endif()
 
-#install(EXPORT bitprim-database
-#  FILE bitprim-databaseTargets.cmake
-#  DESTINATION ${_config_package_location})
-
-configure_file(bitprim-databaseConfig.cmake.in
-  "${CMAKE_CURRENT_BINARY_DIR}/bitprim-databaseConfig.cmake"
+configure_file(bitprim-database-replierConfig.cmake.in
+  "${CMAKE_CURRENT_BINARY_DIR}/bitprim-database-replierConfig.cmake"
   @ONLY)
 
 write_basic_package_version_file(
-  "${CMAKE_CURRENT_BINARY_DIR}/bitprim-databaseConfigVersion.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/bitprim-database-replierConfigVersion.cmake"
   VERSION ${PROJECT_VERSION}
   COMPATIBILITY AnyNewerVersion)
 
 install(
   FILES
-    "${CMAKE_CURRENT_BINARY_DIR}/bitprim-databaseConfig.cmake"
-    "${CMAKE_CURRENT_BINARY_DIR}/bitprim-databaseConfigVersion.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/bitprim-database-replierConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/bitprim-database-replierConfigVersion.cmake"
   DESTINATION ${_config_package_location})
