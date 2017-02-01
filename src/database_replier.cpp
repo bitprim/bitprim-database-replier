@@ -457,7 +457,7 @@ zmq::message dispatch(
     zmq::message reply;
     switch (request.request_type_case()) {
         case protocol::database::request::kTop: {
-            request.PrintDebugString();
+            // request.PrintDebugString();
             reply.enqueue_protobuf_message(
                 dispatch_top(request.top()));
             // reply.PrintDebugString();
@@ -481,7 +481,7 @@ zmq::message dispatch(
         
         
         case protocol::database::request::kInsertBlock: {
-            request.PrintDebugString();
+            // request.PrintDebugString();
             reply.enqueue_protobuf_message(
                 dispatch_insert_block(request.insert_block()));
             // reply.PrintDebugString();
