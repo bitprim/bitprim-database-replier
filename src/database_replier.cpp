@@ -451,14 +451,16 @@ static protocol::database::stealth_database_scan_reply dispatch_stealth_database
 zmq::message dispatch(
     const protocol::database::request& request)
 {
-    std::cout << "receiving a ZMQ/Protobuf message\n";
-	request.PrintDebugString();
+ //    std::cout << "receiving a ZMQ/Protobuf message\n";
+	// request.PrintDebugString();
     
     zmq::message reply;
     switch (request.request_type_case()) {
         case protocol::database::request::kTop: {
+            request.PrintDebugString();
             reply.enqueue_protobuf_message(
                 dispatch_top(request.top()));
+            // reply.PrintDebugString();
             break;
         }
         case protocol::database::request::kGet: {
@@ -479,8 +481,10 @@ zmq::message dispatch(
         
         
         case protocol::database::request::kInsertBlock: {
+            request.PrintDebugString();
             reply.enqueue_protobuf_message(
                 dispatch_insert_block(request.insert_block()));
+            // reply.PrintDebugString();
             break;
         }
         case protocol::database::request::kPush: {
