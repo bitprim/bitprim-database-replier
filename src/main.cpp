@@ -231,8 +231,8 @@ BC_USE_LIBBITCOIN_MAIN
 int libbitcoin::main(int argc, char* argv[]) {
     set_utf8_stdio();
     
-    //database::parser metadata(config::settings::mainnet);
-    database::parser metadata(config::settings::testnet);
+    database::parser metadata(config::settings::mainnet);
+    //database::parser metadata(config::settings::testnet);
     
     auto const& args = const_cast<char const**>(argv);
 
