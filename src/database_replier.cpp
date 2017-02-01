@@ -451,8 +451,8 @@ static protocol::database::stealth_database_scan_reply dispatch_stealth_database
 zmq::message dispatch(
     const protocol::database::request& request)
 {
-    //std::cout << "receiving a ZMQ/Protobuf message\n";
-	//request.PrintDebugString();
+    std::cout << "receiving a ZMQ/Protobuf message\n";
+	request.PrintDebugString();
     
     zmq::message reply;
     switch (request.request_type_case()) {

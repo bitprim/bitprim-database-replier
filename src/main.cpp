@@ -205,7 +205,7 @@ static int main(parser const& metadata) {
     
     data_base_->open();
     
-    //std::cout << "binding replier\n";
+    std::cout << "binding replier at: " << metadata.configured.database.replier << "\n";
     auto ec = replier_.bind(metadata.configured.database.replier);
     assert(!ec);
 
