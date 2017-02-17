@@ -274,6 +274,27 @@ static protocol::database::insert_block_reply dispatch_insert_block(
     return reply;
 }
 
+
+
+//! code data_base::push(const chain::transaction& tx, uint32_t forks)
+static protocol::database::push_tx_reply dispatch_push_tx(
+    const protocol::database::push_tx_request& request) {
+
+    BITCOIN_ASSERT(data_base_);
+
+    size_t const forks = request.forks();
+    
+    chain::transaction tx;
+    converter{}.from_protocol(&request.tx(), tx);
+    //TODO CHECK IF SUCCESFULL
+
+    auto const result = data_base_->push(tx, forks);
+
+    protocol::database::push_tx_reply reply;
+    reply.set_result(result.value());
+    return reply;
+}
+
 //! (OLD) bool data_base::push(const block& block, size_t height)
 //! (NEW) bool data_base::push(const block& block, size_t height)
 static protocol::database::push_reply dispatch_push(
