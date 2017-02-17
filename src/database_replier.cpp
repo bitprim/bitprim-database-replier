@@ -425,7 +425,9 @@ static protocol::database::is_read_valid_reply dispatch_is_read_valid(
     return reply;
 }
 
-//! transaction_result transaction_database::get(const hash_digest& hash) const
+
+//! (OLD) transaction_result transaction_database::get(const hash_digest& hash) const
+//! (NEW) transaction_result transaction_database::get(const hash_digest& hash, size_t fork_height, bool require_confirmed) const;
 static protocol::database::get_transaction_reply dispatch_get_transaction(
     const protocol::database::get_transaction_request& request) {
 
@@ -433,7 +435,7 @@ static protocol::database::get_transaction_reply dispatch_get_transaction(
    
     hash_digest hash;
     converter{}.from_protocol(&request.hash(), hash);
-    transaction_result const result = data_base_->transactions().get(hash);
+    transaction_result const result = data_base_->transactions().get(hash, request.fork_height(), request.require_confirmed());
 
     protocol::database::get_transaction_reply reply;
     to_protocol(result, *reply.mutable_result());
