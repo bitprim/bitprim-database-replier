@@ -443,6 +443,36 @@ static protocol::database::get_transaction_reply dispatch_get_transaction(
     return reply;
 }
 
+
+//bool transaction_database::get_output(chain::output& out_output, size_t& out_height, bool& out_coinbase, 
+//    const chain::output_point& point, size_t fork_height, bool require_confirmed) const
+static protocol::database::get_transaction_output_reply dispatch_get_transaction(
+    const protocol::database::get_transaction_output_request& request) {
+
+    BITCOIN_ASSERT(data_base_);
+   
+    chain::output output;
+    size_t out_height;
+    bool out_coinbase;    
+    
+    chain::output_point outpoint;
+    converter{}.from_protocol(&request.point(), outpoint);
+    size_t fork_height = request.fork_height();
+    bool require_confirmed = request.require_confirmed();
+
+    const bool result = data_base_->transaction().get_output(output,out_height,out_coinbase, outpoint,fork_height,require_confirmed);
+
+    protocol::blockchain::get_transaction_output_reply reply;
+    reply.set_result(result);
+    if (result)
+    {
+        converter{}.to_protocol(output, *reply.mutable_out_output());
+        reply.set_out_height(out_height);
+        reply.set_out_coinbase(out_coinbase);
+    }
+    return reply;
+}
+
 //! history_compact::list history_database::get(const short_hash& key, size_t limit, size_t from_height) const
 static protocol::database::get_history_database_reply dispatch_get_history_database(
     const protocol::database::get_history_database_request& request) {
@@ -608,6 +638,11 @@ zmq::message dispatch(
         case protocol::database::request::kStealthDatabaseScan: {
             reply.enqueue_protobuf_message(
                 dispatch_stealth_database_scan(request.stealth_database_scan()));
+            break;
+        }
+        case protocol::database::request::kGetTransactionOutput: {
+            reply.enqueue_protobuf_message(
+                dispatch_get_transaction_output(request.get_transaction_output()));
             break;
         }
         
