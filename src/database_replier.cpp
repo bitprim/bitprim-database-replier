@@ -221,7 +221,37 @@ static protocol::database::gaps_reply dispatch_gaps(
     return reply;
 }
 
-//! bool data_base::insert(const chain::block& block, size_t height)
+
+// TODO: Nuevo Feb2017
+//! bool data_base::begin_insert() const;
+static protocol::database::begin_insert_reply dispatch_begin_insert(
+    const protocol::database::begin_insert_request& request) {
+
+    BITCOIN_ASSERT(data_base_);
+
+    bool const result = data_base_->begin_insert();
+
+    protocol::database::begin_insert_reply reply;
+    reply.set_result(result);
+    return reply;    
+}
+
+// TODO: Nuevo Feb2017
+//! bool data_base::end_insert() const;
+static protocol::database::end_insert_reply dispatch_end_insert(
+    const protocol::database::end_insert_request& request) {
+
+    BITCOIN_ASSERT(data_base_);
+
+    bool const result = data_base_->end_insert();
+
+    protocol::database::end_insert_reply reply;
+    reply.set_result(result);
+    return reply;    
+}
+
+//! (OLD) bool data_base::insert(const chain::block& block, size_t height)
+//! (NEW) code data_base::insert(const chain::block& block, size_t height);
 static protocol::database::insert_block_reply dispatch_insert_block(
     const protocol::database::insert_block_request& request) {
 
@@ -235,14 +265,17 @@ static protocol::database::insert_block_reply dispatch_insert_block(
     protocol::converter converter;
     converter.from_protocol(&(request.blockr()), block);
     
-    bool const result = data_base_->insert(block, height);
+    // bool const result = data_base_->insert(block, height);
+    auto const result = data_base_->insert(block, height);
 
     protocol::database::insert_block_reply reply;
-    reply.set_result(result);
+    // reply.set_result(result);
+    reply.set_result(result.value());
     return reply;
 }
 
-//! bool data_base::push(const block& block, size_t height)
+//! (OLD) bool data_base::push(const block& block, size_t height)
+//! (NEW) bool data_base::push(const block& block, size_t height)
 static protocol::database::push_reply dispatch_push(
     const protocol::database::push_request& request) {
 
@@ -254,36 +287,40 @@ static protocol::database::push_reply dispatch_push(
     converter{}.from_protocol(&request.block(), block);
     //TODO CHECK IF SUCCESFULL
 
-    bool const result = data_base_->push(block, height);
+    //bool const result = data_base_->push(block, height);
+    auto const result = data_base_->push(block, height);
 
     protocol::database::push_reply reply;
-    reply.set_result(result);
+    // reply.set_result(result);
+    reply.set_result(result.value());
     return reply;
 }
 
-//! bool data_base::pop_above(block::list& out_blocks, const hash_digest& fork_hash)
-static protocol::database::pop_above_reply dispatch_pop_above(
-    const protocol::database::pop_above_request& request) {
 
-    BITCOIN_ASSERT(data_base_);
+// TODO: Eliminado en Feb2017
+// //! bool data_base::pop_above(block::list& out_blocks, const hash_digest& fork_hash)
+// static protocol::database::pop_above_reply dispatch_pop_above(
+//     const protocol::database::pop_above_request& request) {
 
-    hash_digest fork_hash;
-    converter{}.from_protocol(&request.fork_hash(), fork_hash);
+//     BITCOIN_ASSERT(data_base_);
 
-    chain::block::list out_blocks;
-    bool const result = data_base_->pop_above(out_blocks, fork_hash);
+//     hash_digest fork_hash;
+//     converter{}.from_protocol(&request.fork_hash(), fork_hash);
 
-    protocol::database::pop_above_reply reply;
-    reply.set_result(result);
+//     chain::block::list out_blocks;
+//     bool const result = data_base_->pop_above(out_blocks, fork_hash);
 
-    auto repeated_out_blocks = reply.mutable_out_blocks();
+//     protocol::database::pop_above_reply reply;
+//     reply.set_result(result);
 
-    for (auto const& out_block : out_blocks) {
-        converter{}.to_protocol(out_block, *(repeated_out_blocks->Add()));
-    }
+//     auto repeated_out_blocks = reply.mutable_out_blocks();
 
-    return reply;
-}
+//     for (auto const& out_block : out_blocks) {
+//         converter{}.to_protocol(out_block, *(repeated_out_blocks->Add()));
+//     }
+
+//     return reply;
+// }
 
 
 //! bool store::flush_lock() const
@@ -484,6 +521,20 @@ zmq::message dispatch(
         }
         
         
+
+
+        // TODO: Nuevo Feb2017
+        case protocol::database::request::kBeginInsert: {
+            reply.enqueue_protobuf_message(
+                dispatch_begin_insert(request.begin_insert()));
+            break;
+        }
+        // TODO: Nuevo Feb2017
+        case protocol::database::request::kEndInsert: {
+            reply.enqueue_protobuf_message(
+                dispatch_end_insert(request.end_insert()));
+            break;
+        }
         case protocol::database::request::kInsertBlock: {
             // request.PrintDebugString();
             reply.enqueue_protobuf_message(
@@ -496,11 +547,13 @@ zmq::message dispatch(
                 dispatch_push(request.push()));
             break;
         }
-        case protocol::database::request::kPopAbove: {
-            reply.enqueue_protobuf_message(
-                dispatch_pop_above(request.pop_above()));
-            break;
-        }
+
+        // TODO: Eliminado en Feb2017
+        // case protocol::database::request::kPopAbove: {
+        //     reply.enqueue_protobuf_message(
+        //         dispatch_pop_above(request.pop_above()));
+        //     break;
+        // }
         
         
         
