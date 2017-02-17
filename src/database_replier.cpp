@@ -286,7 +286,7 @@ static protocol::database::pop_above_reply dispatch_pop_above(
 }
 
 
-//! bool store::flush_lock()
+//! bool store::flush_lock() const
 static protocol::database::flush_lock_reply dispatch_flush_lock(
     const protocol::database::flush_lock_request& request) {
 
@@ -302,7 +302,7 @@ static protocol::database::flush_lock_reply dispatch_flush_lock(
     return reply;
 }
 
-//! bool store::flush_unlock()
+//! bool store::flush_unlock() const
 static protocol::database::flush_unlock_reply dispatch_flush_unlock(
     const protocol::database::flush_unlock_request& request) {
 
@@ -328,28 +328,32 @@ static protocol::database::begin_read_reply dispatch_begin_read(
     return reply;
 }
 
-//! bool store::begin_write(bool lock)
+//! (OLD) bool store::begin_write(bool lock)
+//! (NEW) bool store::begin_write() const;
 static protocol::database::begin_write_reply dispatch_begin_write(
     const protocol::database::begin_write_request& request) {
 
     BITCOIN_ASSERT(data_base_);
 
-    bool lock = request.lock();
-    bool const result = data_base_->begin_write(lock);
+    // bool lock = request.lock();
+    // bool const result = data_base_->begin_write(lock);
+    bool const result = data_base_->begin_write();
 
     protocol::database::begin_write_reply reply;
     reply.set_result(result);
     return reply;
 }
 
-//! bool store::end_write(bool unlock)
+//! (OLD) bool store::end_write(bool unlock)
+//! (NEW )bool store::end_write() const;
 static protocol::database::end_write_reply dispatch_end_write(
     const protocol::database::end_write_request& request) {
 
     BITCOIN_ASSERT(data_base_);
 
-    bool unlock = request.unlock();
-    bool const result = data_base_->end_write(unlock);
+    // bool unlock = request.unlock();
+    // bool const result = data_base_->end_write(unlock);
+    bool const result = data_base_->end_write();
 
     protocol::database::end_write_reply reply;
     reply.set_result(result);
