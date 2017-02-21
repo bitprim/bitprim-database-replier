@@ -103,9 +103,19 @@ bool do_initchain(parser const& metadata, database::settings const& database_ori
     if (create_directories(directory, ec)) {
         LOG_INFO(LOG_DATABASE) << format(BN_INITIALIZING_CHAIN) % directory;
 
+        // // Unfortunately we are still limited to a choice of hardcoded chains.
+        // const auto genesis = metadata.configured.database.use_testnet_rules ?
+        //     libbitcoin::chain::block::genesis_testnet() : libbitcoin::chain::block::genesis_mainnet();
+
+        //TODO: BITPRIM: hardcoded identifiers
         // Unfortunately we are still limited to a choice of hardcoded chains.
-        const auto genesis = metadata.configured.database.use_testnet_rules ?
-            libbitcoin::chain::block::genesis_testnet() : libbitcoin::chain::block::genesis_mainnet();
+#ifdef LITECOIN
+        const auto testnet = (metadata.configured.database.identifier == 3703030268u);   //Litecoin
+#else
+        const auto testnet = (metadata.configured.database.identifier == 118034699u);    //Bitcoin
+#endif //LITECOIN
+
+        const auto genesis = testnet ? chain::block::genesis_testnet() : chain::block::genesis_mainnet();
 
         const auto result = data_base(database_orig).create(genesis);
 
