@@ -194,6 +194,7 @@ static int main(parser const& metadata) {
     database_orig.index_start_height = metadata.configured.database.index_start_height;
     database_orig.block_table_buckets = metadata.configured.database.block_table_buckets;
     database_orig.transaction_table_buckets = metadata.configured.database.transaction_table_buckets;
+    database_orig.transaction_unconfirmed_table_buckets = metadata.configured.database.transaction_unconfirmed_table_buckets;
     database_orig.spend_table_buckets = metadata.configured.database.spend_table_buckets;
     database_orig.history_table_buckets = metadata.configured.database.history_table_buckets;
     database_orig.directory = metadata.configured.database.directory;

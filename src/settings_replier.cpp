@@ -32,6 +32,7 @@ settings_replier::settings_replier()
     // Hash table sizes (must be configured).
     block_table_buckets(0),
     transaction_table_buckets(0),
+    transaction_unconfirmed_table_buckets(0),
     spend_table_buckets(0),
     history_table_buckets(0),
     directory("blockchain"),
@@ -47,6 +48,7 @@ settings_replier::settings_replier(config::settings context)
         case config::settings::mainnet: {
             block_table_buckets = 650000;
             transaction_table_buckets = 110000000;
+            transaction_unconfirmed_table_buckets = 10000;
             spend_table_buckets = 250000000;
             history_table_buckets = 107000000;
             break;
@@ -55,6 +57,7 @@ settings_replier::settings_replier(config::settings context)
             // TODO: optimize for testnet.
             block_table_buckets = 650000;
             transaction_table_buckets = 110000000;
+            transaction_unconfirmed_table_buckets = 10000;
             spend_table_buckets = 250000000;
             history_table_buckets = 107000000;
             use_testnet_rules = true;
