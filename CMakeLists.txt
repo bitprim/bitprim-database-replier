@@ -14,6 +14,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Process options.data_base.hpp
 #==============================================================================
+
+# Implement --with-litecoin.
+#------------------------------------------------------------------------------
+option(WITH_LITECOIN "Compile with Litecoin support." OFF)
+if (WITH_LITECOIN)
+  add_definitions(-DLITECOIN)
+endif()
+
 # Implement --with-tests and declare WITH_TESTS.
 #------------------------------------------------------------------------------
 option(WITH_TESTS "Compile with unit tests." ON)
